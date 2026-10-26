@@ -97,3 +97,12 @@ body>*:not(#doc-impression){display:none!important}
 .modules details{margin-top:.5rem}
 .modules details summary{padding:.5rem .8rem;font-weight:500;font-size:.9rem}
 .modules details .contenu{padding:0 .8rem .8rem;margin:0}
+.pied{max-width:46rem;margin:0 auto;padding:1rem;text-align:center;font-size:.9rem}
+.pied a{color:var(--doux)}
+.legal h2{margin-top:1.6rem}
+.legal ul{padding-left:1.2rem}
+.legal .resume{background:#E7F4F3;border-left:6px solid var(--teal);padding:.8rem 1rem;border-radius:8px}
+@media print{.pied{display:none}}
+.visuels{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
+.visuels img{width:100%;height:auto;border-radius:12px;display:block}
+@media(max-width:700px){.pied{padding-bottom:5.5rem}}

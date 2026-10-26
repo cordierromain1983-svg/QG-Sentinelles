@@ -45,6 +45,11 @@ function construireCadre() {
     nav.append(a);
   });
   document.body.prepend(haut, nav);
+  const pied = el("footer", "pied");
+  const lien = el("a", null, "Mentions légales et confidentialité");
+  lien.href = "mentions-legales.html";
+  pied.append(lien);
+  document.body.append(pied);
 }
 
 async function initFaq() {
