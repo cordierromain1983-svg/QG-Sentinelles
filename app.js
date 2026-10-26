@@ -94,6 +94,57 @@ async function appeler(action, extra) {
   return r.json();
 }
 
+function dateDuJour() { return new Date().toLocaleDateString("fr-FR"); }
+
+function ligne(parent, tag, cls, txt) { const e = el(tag, cls, txt); parent.append(e); return e; }
+
+// Construit le document imprimable (portfolio ou certificat) puis ouvre l’impression : « Enregistrer au format PDF ».
+function imprimerDocument(type, d) {
+  const doc = document.getElementById("doc-impression");
+  doc.replaceChildren();
+  if (type === "certificat") {
+    doc.className = "doc doc-certificat";
+    ligne(doc, "p", "doc-sur", "🛡️ Le QG des Sentinelles");
+    ligne(doc, "h1", null, "Certificat Sentinelle");
+    ligne(doc, "p", null, "Ce certificat est remis à");
+    ligne(doc, "p", "doc-blanc", "");
+    ligne(doc, "p", "doc-note", "(nom à écrire à la main)");
+    ligne(doc, "p", null, "Sentinelle " + d.code + ", pour son engagement dans la prévention du harcèlement au lycée et pour avoir validé l’ensemble du parcours de formation.");
+    ligne(doc, "p", "doc-grand", "Niveau atteint : " + d.niveau);
+    ligne(doc, "p", null, "Score : " + d.score + " points · " + d.badges.length + " badges");
+    ligne(doc, "p", "doc-note", "Délivré le " + dateDuJour());
+    const sg = ligne(doc, "div", "doc-signature");
+    ligne(sg, "span", null, "Signature du référent");
+  } else {
+    doc.className = "doc";
+    ligne(doc, "p", "doc-sur", "🛡️ Le QG des Sentinelles");
+    ligne(doc, "h1", null, "Portfolio Sentinelle");
+    ligne(doc, "p", "doc-note", "Sentinelle " + d.code + " · édité le " + dateDuJour() + " · document personnel, sans nom ni donnée personnelle");
+    const stats = ligne(doc, "div", "doc-stats");
+    [["Niveau", d.niveau], ["Score", String(d.score)], ["Badges", String(d.badges.length)]].forEach(([l, v]) => {
+      const c = ligne(stats, "div"); ligne(c, "b", null, v); ligne(c, "span", null, l);
+    });
+    ligne(doc, "h2", null, "Mes badges");
+    if (d.badges.length) {
+      const ul = ligne(doc, "ul");
+      d.badges.forEach(b => ligne(ul, "li", null, b.nom + (b.date ? " (" + b.date + ")" : "")));
+    } else ligne(doc, "p", null, "Aucun badge pour l’instant.");
+    ligne(doc, "h2", null, "Ma formation");
+    const ul2 = ligne(doc, "ul");
+    d.parcours.forEach(p => ligne(ul2, "li", null, p.titre + " : " + p.faits + "/" + p.total + " modules"));
+    ligne(doc, "h2", null, "Mes actions");
+    const ul3 = ligne(doc, "ul");
+    const fam = Object.keys(d.missions);
+    if (fam.length) fam.forEach(f => ligne(ul3, "li", null, "Missions Flash " + f + " : " + d.missions[f]));
+    else ligne(ul3, "li", null, "Aucune Mission Flash pour l’instant.");
+    ligne(ul3, "li", null, "Défis relevés : " + d.defis);
+  }
+  const titre = document.title;
+  document.title = (type === "certificat" ? "Certificat-" : "Portfolio-") + d.code;
+  window.addEventListener("afterprint", () => { document.title = titre; }, { once: true });
+  window.print();
+}
+
 function initPortfolio() {
   const ID = id => document.getElementById(id);
   const zones = ["zone-connexion", "zone-changement", "zone-profil"];
@@ -140,6 +191,19 @@ function initPortfolio() {
       await afficherProfil();
     });
   });
+
+  async function document_(type) {
+    const d = await appeler("portfolio");
+    if (d.erreur) { dire(d.erreur); return; }
+    if (type === "certificat" && !d.certificat) {
+      dire("Le certificat se débloque quand tu as terminé le parcours « Sentinelle Confirmée ».");
+      return;
+    }
+    dire("");
+    imprimerDocument(type, d);
+  }
+  ID("btn-portfolio").addEventListener("click", () => agir(() => document_("portfolio")));
+  ID("btn-certificat").addEventListener("click", () => agir(() => document_("certificat")));
 
   ID("btn-deco").addEventListener("click", () => agir(async () => {
     await appeler("deconnexion");

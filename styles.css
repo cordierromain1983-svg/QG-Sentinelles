@@ -72,3 +72,24 @@ body{padding-bottom:0}
 #acc-mission strong,#acc-mission span{display:block}
 #acc-mission .btn{margin:.8rem 0 0;text-align:center;text-decoration:none}
 #acc-progression .stats{margin-bottom:0}
+
+#doc-impression{display:none}
+@page{size:A4;margin:18mm}
+@media print{
+body{background:#fff;padding:0}
+body>*:not(#doc-impression){display:none!important}
+#doc-impression{display:block;color:#000;font:12pt/1.5 Georgia,"Times New Roman",serif}
+.doc h1{font-size:24pt;margin:.2em 0 .4em}
+.doc h2{font-size:14pt;margin:1.2em 0 .3em;border-bottom:1px solid #000;padding-bottom:.1em}
+.doc ul{margin:.3em 0;padding-left:1.2em}
+.doc-sur{font-weight:700;letter-spacing:.05em;margin:0}
+.doc-note{font-size:10pt;color:#444}
+.doc-stats{display:flex;gap:1.5em;margin:1em 0}
+.doc-stats div{border:1px solid #000;padding:.5em 1em;text-align:center;min-width:6em}
+.doc-stats b{display:block;font-size:14pt}
+.doc-certificat{text-align:center;border:4px double #000;padding:2em 1.5em;min-height:23cm;box-sizing:border-box}
+.doc-certificat h1{font-size:34pt;margin:1.2em 0 .6em}
+.doc-blanc{border-bottom:1px solid #000;width:70%;margin:1.8em auto .2em;height:1.2em}
+.doc-grand{font-size:16pt;font-weight:700;margin-top:1.5em}
+.doc-signature{margin:4em 0 0 auto;width:12em;border-top:1px solid #000;padding-top:.3em;font-size:10pt}
+}
