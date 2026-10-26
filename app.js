@@ -21,9 +21,8 @@ function el(tag, cls, txt) {
 // Lit une feuille publique (FAQ, RESSOURCES…). Renvoie null tant que l’API n’est pas configurée.
 async function lireFeuille(nom) {
   if (!CONFIG.API_URL) return null;
-  const r = await fetch(CONFIG.API_URL + "?feuille=" + encodeURIComponent(nom));
-  if (!r.ok) throw new Error("Réponse " + r.status);
-  const d = await r.json();
+  const d = await appeler("feuille", { nom: nom });
+  if (d && d.erreur) throw new Error(d.erreur);
   if (!Array.isArray(d)) throw new Error("Données invalides");
   return d;
 }
