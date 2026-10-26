@@ -93,3 +93,7 @@ body>*:not(#doc-impression){display:none!important}
 .doc-grand{font-size:16pt;font-weight:700;margin-top:1.5em}
 .doc-signature{margin:4em 0 0 auto;width:12em;border-top:1px solid #000;padding-top:.3em;font-size:10pt}
 }
+
+.modules details{margin-top:.5rem}
+.modules details summary{padding:.5rem .8rem;font-weight:500;font-size:.9rem}
+.modules details .contenu{padding:0 .8rem .8rem;margin:0}

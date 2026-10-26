@@ -299,6 +299,11 @@ async function initParcours() {
         const t = el("div");
         t.append(el("strong", null, m.titre), el("span", null, (m.fait ? "✔ Terminé" : m.disponible ? "À faire" : "À venir") + (m.duree ? " · " + m.duree : "")));
         if (m.contenu && m.disponible) t.append(el("p", "contenu", m.contenu));
+        else if (m.contenu && m.fait) {
+          const dd = el("details", "relire");
+          dd.append(el("summary", null, "Relire le module"), el("p", "contenu", m.contenu));
+          t.append(dd);
+        }
         li.append(t);
         if (m.disponible) {
           const b = el("button", "btn", "J’ai terminé ce module");
