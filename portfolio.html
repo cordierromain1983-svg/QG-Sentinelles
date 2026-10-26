@@ -10,15 +10,38 @@
 <main>
 <h2>Mon parcours</h2>
 <p class="chapo">Ce que tu as appris et réalisé. Visible uniquement par toi.</p>
+<p id="message" class="alerte" role="status" aria-live="polite" hidden></p>
+
+<form id="zone-connexion" class="bloc outils">
+<h2>Connexion</h2>
+<label for="code">Identifiant Sentinelle</label>
+<input id="code" placeholder="SNT-001" maxlength="7" autocomplete="username" autocapitalize="characters" required>
+<label for="mdp">Mot de passe (ou code provisoire)</label>
+<input id="mdp" type="password" autocomplete="current-password" required>
+<button class="btn" type="submit">Me connecter</button>
+<p class="chapo">Première connexion ? Saisis le code provisoire remis par ton référent.</p>
+</form>
+
+<form id="zone-changement" class="bloc outils" hidden>
+<h2>Choisis ton mot de passe</h2>
+<label for="nv-mdp">Nouveau mot de passe (8 caractères minimum)</label>
+<input id="nv-mdp" type="password" autocomplete="new-password" minlength="8" required>
+<label for="nv-mdp2">Répète-le</label>
+<input id="nv-mdp2" type="password" autocomplete="new-password" minlength="8" required>
+<button class="btn" type="submit">Enregistrer</button>
+</form>
+
+<div id="zone-profil" hidden>
 <div class="stats">
-<div><b>Aspirant</b><span>Niveau</span></div>
-<div><b>—</b><span>Score</span></div>
-<div><b>—</b><span>Badges</span></div>
+<div><b id="p-niveau">—</b><span>Niveau</span></div>
+<div><b id="p-score">—</b><span>Score</span></div>
+<div><b id="p-badges">—</b><span>Badges</span></div>
 </div>
-<section class="bloc"><h2>Mes badges</h2><p class="vide">Tes badges apparaîtront ici.</p></section>
+<section class="bloc"><h2>Mes badges</h2><ul id="liste-badges" class="familles"></ul></section>
 <button class="btn" disabled>Télécharger mon portfolio</button>
 <button class="btn" disabled>Télécharger mon certificat</button>
-<p class="vide">La connexion personnelle sera ajoutée à l’étape 3.</p>
+<button id="btn-deco" class="btn" type="button">Me déconnecter</button>
+</div>
 </main>
 <script src="app.js"></script>
 </body>

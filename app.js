@@ -83,5 +83,76 @@ async function initFaq() {
   afficher();
 }
 
+function jeton() { return sessionStorage.getItem("qg_token") || ""; }
+
+async function appeler(action, extra) {
+  const r = await fetch(CONFIG.API_URL, {
+    method: "POST",
+    body: JSON.stringify(Object.assign({ action: action, token: jeton() }, extra || {}))
+  });
+  if (!r.ok) throw new Error("Réponse " + r.status);
+  return r.json();
+}
+
+function initPortfolio() {
+  const ID = id => document.getElementById(id);
+  const zones = ["zone-connexion", "zone-changement", "zone-profil"];
+  const msg = ID("message");
+  const dire = t => { msg.textContent = t || ""; msg.hidden = !t; };
+  const montrer = id => zones.forEach(z => { ID(z).hidden = z !== id; });
+  const agir = async f => {
+    try { await f(); } catch (e) { dire("Connexion impossible pour le moment. Réessaie plus tard."); }
+  };
+
+  async function afficherProfil() {
+    const p = await appeler("profil");
+    if (p.erreur) { sessionStorage.removeItem("qg_token"); montrer("zone-connexion"); dire(p.erreur); return; }
+    if (p.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
+    ID("p-niveau").textContent = p.niveau;
+    ID("p-score").textContent = p.score;
+    ID("p-badges").textContent = p.badges.length;
+    ID("liste-badges").replaceChildren(...(p.badges.length
+      ? p.badges.map(b => el("li", null, b))
+      : [el("li", null, "Aucun badge pour l’instant.")]));
+    montrer("zone-profil");
+    dire("");
+  }
+
+  ID("zone-connexion").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const r = await appeler("connexion", { code: ID("code").value, mdp: ID("mdp").value });
+      ID("mdp").value = "";
+      if (r.erreur) { dire(r.erreur); return; }
+      sessionStorage.setItem("qg_token", r.token);
+      await afficherProfil();
+    });
+  });
+
+  ID("zone-changement").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const a = ID("nv-mdp").value, b = ID("nv-mdp2").value;
+      if (a !== b) { dire("Les deux mots de passe ne sont pas identiques."); return; }
+      const r = await appeler("changerMdp", { nouveau: a });
+      if (r.erreur) { dire(r.erreur); return; }
+      ID("nv-mdp").value = ""; ID("nv-mdp2").value = "";
+      await afficherProfil();
+    });
+  });
+
+  ID("btn-deco").addEventListener("click", () => agir(async () => {
+    await appeler("deconnexion");
+    sessionStorage.removeItem("qg_token");
+    montrer("zone-connexion");
+    dire("Tu es déconnecté·e.");
+  }));
+
+  montrer("zone-connexion");
+  if (!CONFIG.API_URL) { dire("La connexion n’est pas encore configurée."); return; }
+  if (jeton()) agir(afficherProfil);
+}
+
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
+if (document.body.dataset.page === "portfolio") initPortfolio();
