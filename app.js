@@ -4,12 +4,33 @@
 const CONFIG = { API_URL: "https://script.google.com/macros/s/AKfycbyYt4ipAol5ihHZKybK7y8K6tc7pgijrnUIIxzsv6bQCgl8Vmri29zIgyDdE6vHrieU/exec" };
 
 const PAGES = [
-  { id: "index", href: "index.html", ico: "🏠", nom: "Accueil" },
-  { id: "missions", href: "missions.html", ico: "❤️", nom: "J’agis" },
-  { id: "parcours", href: "parcours.html", ico: "🧠", nom: "J’apprends" },
-  { id: "faq", href: "faq.html", ico: "🛟", nom: "Aide" },
-  { id: "portfolio", href: "portfolio.html", ico: "🎖", nom: "Mon parcours" }
+  { id: "index", href: "index.html", ico: "accueil", nom: "Accueil" },
+  { id: "missions", href: "missions.html", ico: "mission", nom: "J’agis" },
+  { id: "parcours", href: "parcours.html", ico: "marches", nom: "J’apprends" },
+  { id: "faq", href: "faq.html", ico: "bouee", nom: "Aide" },
+  { id: "portfolio", href: "portfolio.html", ico: "medaille", nom: "Mon parcours" }
 ];
+
+// Pictogrammes du menu : dessinés ici, aucun fichier ni police externe.
+const ICONES = {
+  accueil: ["M3 11l9-8 9 8", "M5 10v10h5v-6h4v6h5V10"],
+  mission: ["M13 2L4 14h7l-1 8 9-12h-7z"],
+  marches: ["M3 20h18", "M5 20v-5h4v5", "M10 20V9h4v11", "M15 20V4h4v16"],
+  bouee: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z", "M5.6 5.6l3.9 3.9", "M14.5 14.5l3.9 3.9", "M18.4 5.6l-3.9 3.9", "M9.5 14.5l-3.9 3.9"],
+  medaille: ["M12 3a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z", "M8.5 13.5L7 22l5-3 5 3-1.5-8.5"]
+};
+function icone(nom) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  (ICONES[nom] || []).forEach(d => {
+    const p = document.createElementNS(ns, "path");
+    p.setAttribute("d", d);
+    svg.append(p);
+  });
+  return svg;
+}
 
 function el(tag, cls, txt) {
   const e = document.createElement(tag);
@@ -30,22 +51,21 @@ async function lireFeuille(nom) {
 function construireCadre() {
   const page = document.body.dataset.page;
   const haut = el("header", "haut");
-  haut.append(el("h1", null, "🛡️ Le QG des Sentinelles"),
+  haut.append(el("h1", null, "Le QG des Sentinelles"),
               el("p", null, "Ton espace de formation, d’engagement et de progression."));
   const nav = el("nav", "onglets");
   nav.setAttribute("aria-label", "Navigation principale");
   PAGES.forEach(p => {
     const a = el("a");
     a.href = p.href;
-    const ico = el("span", "ico", p.ico);
-    ico.setAttribute("aria-hidden", "true");
-    a.append(ico, el("span", null, p.nom));
+    a.append(icone(p.ico), el("span", null, p.nom));
     if (p.id === page) a.setAttribute("aria-current", "page");
     nav.append(a);
   });
   if (jeton() && page !== "referent") {
-    const q = el("button", "quitter", "Me déconnecter");
+    const q = el("button", "quitter", "Quitter");
     q.type = "button";
+    q.setAttribute("aria-label", "Me déconnecter");
     q.addEventListener("click", quitter);
     haut.append(q);
     document.body.prepend(haut, nav);
@@ -382,7 +402,7 @@ function initEntree() {
     if (p.erreur) { montrer("zone-connexion"); dire(p.erreur); return; }
     if (p.referent) { location.replace("referent.html"); return; }
     if (p.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
-    montrer("zone-accueil"); initAccueil();
+    montrer("zone-accueil"); document.body.classList.add("connecte"); initAccueil();
   };
   montrer("zone-connexion");
   if (/[?&]s=expire/.test(location.search)) dire("Ta session a expiré. Reconnecte-toi.");
