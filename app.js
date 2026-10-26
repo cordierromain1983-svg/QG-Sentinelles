@@ -263,8 +263,100 @@ async function initParcours() {
   await charger();
 }
 
+function aujourdhui() { return new Date().toLocaleDateString("sv-SE"); } // AAAA-MM-JJ, heure locale
+
+function estIso(d) { return /^\d{4}-\d{2}-\d{2}$/.test(d || ""); }
+
+function enCours(l, debut, fin) {
+  const t = aujourdhui();
+  return estIso(l[debut]) && estIso(l[fin]) && l[debut] <= t && t <= l[fin];
+}
+
+function remplir(id, contenu) {
+  document.getElementById(id).replaceChildren(contenu);
+}
+
+async function initAccueil() {
+  const connecte = !!(CONFIG.API_URL && jeton());
+
+  // Actualités : publiées et non expirées (3 maximum, les plus récentes d’abord)
+  (async () => {
+    try {
+      const data = await lireFeuille("ACTUALITES");
+      if (!data) { remplir("acc-actus", el("p", "vide", "Les actualités apparaîtront ici.")); return; }
+      const liste = data.filter(l => enCours(l, "Date_Publication", "Date_Expiration"))
+        .sort((x, y) => y.Date_Publication.localeCompare(x.Date_Publication)).slice(0, 3);
+      if (!liste.length) { remplir("acc-actus", el("p", "vide", "Pas d’actualité en ce moment.")); return; }
+      const ul = el("ul", "actus");
+      liste.forEach(l => {
+        const li = el("li");
+        li.append(el("strong", null, l.Titre), el("span", null, l.Message));
+        ul.append(li);
+      });
+      remplir("acc-actus", ul);
+    } catch (e) { remplir("acc-actus", el("p", "vide", "Impossible de charger les actualités pour le moment.")); }
+  })();
+
+  // Défi du mois : celui dont les dates couvrent aujourd’hui
+  (async () => {
+    try {
+      const data = await lireFeuille("DEFIS");
+      if (!data) { remplir("acc-defi", el("p", "vide", "Le défi du mois apparaîtra ici.")); return; }
+      const d = data.filter(l => enCours(l, "Date_Debut", "Date_Fin"))[0];
+      if (!d) { remplir("acc-defi", el("p", "vide", "Pas de défi en cours.")); return; }
+      const c = el("div");
+      c.append(el("strong", null, d.Titre), el("p", null, d.Description));
+      remplir("acc-defi", c);
+    } catch (e) { remplir("acc-defi", el("p", "vide", "Impossible de charger le défi pour le moment.")); }
+  })();
+
+  // Mission Flash et progression : seulement si l’élève est connecté
+  const invite = () => {
+    const p = el("p", "vide");
+    p.append("Connecte-toi dans ", Object.assign(el("a", null, "Mon parcours"), { href: "portfolio.html" }), " pour voir ceci.");
+    return p;
+  };
+  if (!connecte) { remplir("acc-mission", invite()); remplir("acc-progression", invite()); return; }
+
+  (async () => {
+    try {
+      const r = await appeler("missionsSemaine");
+      if (r.erreur) { remplir("acc-mission", el("p", "vide", r.erreur)); return; }
+      const m = r.missions.filter(x => !x.fait)[0];
+      const c = el("div");
+      if (!m) { c.append(el("p", null, "Bravo, tu as fait toutes les missions de la semaine !")); }
+      else {
+        c.append(el("strong", null, m.titre), el("span", null, m.famille));
+        const a = el("a", "btn", "Je relève la mission"); a.href = "missions.html";
+        c.append(a);
+      }
+      remplir("acc-mission", c);
+    } catch (e) { remplir("acc-mission", el("p", "vide", "Impossible de charger la mission pour le moment.")); }
+  })();
+
+  (async () => {
+    try {
+      const [p, r] = await Promise.all([appeler("profil"), appeler("parcours")]);
+      if (p.erreur || r.erreur) {
+        const t = p.erreur || r.erreur;
+        if (/expir/i.test(t)) sessionStorage.removeItem("qg_token");
+        remplir("acc-progression", el("p", "vide", t)); return;
+      }
+      if (p.doitChanger) { remplir("acc-progression", invite()); return; }
+      let faits = 0, total = 0;
+      r.parcours.forEach(x => { faits += x.faits; total += x.total; });
+      const g = el("div", "stats");
+      [[p.niveau, "Niveau"], [String(p.score), "Score"], [faits + "/" + total, "Modules"]].forEach(([v, l]) => {
+        const d = el("div"); d.append(el("b", null, v), el("span", null, l)); g.append(d);
+      });
+      remplir("acc-progression", g);
+    } catch (e) { remplir("acc-progression", el("p", "vide", "Impossible de charger ta progression pour le moment.")); }
+  })();
+}
+
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
 if (document.body.dataset.page === "parcours") initParcours();
+if (document.body.dataset.page === "index") initAccueil();

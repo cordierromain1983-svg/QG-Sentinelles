@@ -63,3 +63,12 @@ body{padding-bottom:0}
 .modules span{color:var(--doux);font-size:.9rem}
 .modules .contenu{white-space:pre-line;margin:.4rem 0 0;color:var(--encre)}
 .modules .btn{margin:0}
+
+.actus{list-style:none;margin:0;padding:0}
+.actus li{display:grid;gap:.2rem;padding:.7rem 0;border-top:1px solid var(--trait)}
+.actus li:first-child{border-top:0}
+.actus span,#acc-defi p,#acc-mission span{color:var(--doux);font-size:.95rem}
+#acc-defi p{margin:.3rem 0 0}
+#acc-mission strong,#acc-mission span{display:block}
+#acc-mission .btn{margin:.8rem 0 0;text-align:center;text-decoration:none}
+#acc-progression .stats{margin-bottom:0}
