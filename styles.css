@@ -182,3 +182,17 @@ body>*:not(#doc-impression){display:none!important}
 
 .demande{border-bottom:1px solid var(--trait);margin-bottom:.6rem}
 .demande p{margin:.3rem 0}
+
+/* Quiz des modules */
+.quiz-form{display:grid;gap:.8rem;margin-top:.6rem}
+.quiz-q{margin:0;padding:.8rem .9rem;border:1px solid var(--trait);border-radius:10px;background:rgba(3,21,54,.55)}
+.quiz-q legend{padding:0 .4rem;font-weight:700;color:var(--os)}
+.quiz-choix{display:flex;gap:.6rem;align-items:flex-start;padding:.55rem .4rem;cursor:pointer;color:var(--os);line-height:1.35}
+.quiz-choix input{margin-top:.2rem;accent-color:var(--or);width:1.1rem;height:1.1rem;flex:none}
+.quiz-choix:focus-within{outline:2px solid var(--or-clair);outline-offset:2px;border-radius:6px}
+.quiz-q.juste{border-color:#4CC38A}
+.quiz-q.faux{border-color:#E8896B}
+.quiz-retour{margin:.4rem 0 0;color:var(--os);font-size:.95rem}
+.quiz-retour:empty{display:none}
+.quiz-bilan{margin:0;font-weight:700;color:var(--or-clair)}
+.quiz-bilan:empty{display:none}

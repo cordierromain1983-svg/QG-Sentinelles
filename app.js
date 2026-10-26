@@ -308,6 +308,74 @@ async function initMissions() {
   await charger();
 }
 
+// Quiz d’un module : 3 questions à choix, correction immédiate, module validé à 2 bonnes réponses sur 3.
+async function ouvrirQuiz(m, bouton, zone) {
+  const dire = t => { const p = document.getElementById("parcours-message"); p.textContent = t || ""; p.hidden = !t; };
+  bouton.disabled = true;
+  let d;
+  try { d = await appeler("quiz", { idModule: m.id }); }
+  catch (e) { dire("Quiz indisponible pour le moment. Réessaie plus tard."); bouton.disabled = false; return; }
+  if (d.erreur) { dire(d.erreur); bouton.disabled = false; return; }
+  dire("");
+  bouton.hidden = true;
+  const form = el("form", "quiz-form");
+  form.setAttribute("novalidate", "");
+  d.questions.forEach((qu, i) => {
+    const fs = el("fieldset", "quiz-q");
+    fs.dataset.id = qu.id;
+    fs.append(el("legend", null, (i + 1) + ". " + qu.question));
+    ["A", "B", "C"].forEach(l => {
+      const lab = el("label", "quiz-choix");
+      const inp = el("input");
+      inp.type = "radio"; inp.name = qu.id; inp.value = l;
+      lab.append(inp, el("span", null, qu.choix[l]));
+      fs.append(lab);
+    });
+    fs.append(el("p", "quiz-retour"));
+    form.append(fs);
+  });
+  const env = el("button", "btn", "Valider mes réponses");
+  env.type = "submit";
+  const bilan = el("p", "quiz-bilan");
+  bilan.setAttribute("role", "status");
+  form.append(env, bilan);
+  form.addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const reponses = {};
+    form.querySelectorAll("fieldset").forEach(fs => {
+      const c = fs.querySelector("input:checked");
+      if (c) reponses[fs.dataset.id] = c.value;
+    });
+    if (Object.keys(reponses).length < d.questions.length) { bilan.textContent = "Réponds aux " + d.questions.length + " questions avant de valider."; return; }
+    env.disabled = true;
+    let r;
+    try { r = await appeler("repondreQuiz", { idModule: m.id, reponses: reponses }); }
+    catch (e) { bilan.textContent = "Envoi impossible pour le moment. Réessaie plus tard."; env.disabled = false; return; }
+    if (r.erreur) { bilan.textContent = r.erreur; env.disabled = false; return; }
+    r.resultats.forEach(x => {
+      const fs = form.querySelector('fieldset[data-id="' + x.id + '"]');
+      fs.classList.add(x.juste ? "juste" : "faux");
+      fs.disabled = true;
+      fs.querySelector(".quiz-retour").textContent = (x.juste ? "✔ Bonne réponse. " : "✘ Pas tout à fait. ") + x.explication;
+    });
+    const score = r.bonnes + " bonne" + (r.bonnes > 1 ? "s" : "") + " réponse" + (r.bonnes > 1 ? "s" : "") + " sur " + r.total + ".";
+    if (r.reussi) {
+      bilan.textContent = score + " Module validé ! " + (r.nouveauxBadges && r.nouveauxBadges.length ? "Nouveau badge : " + r.nouveauxBadges.join(", ") + ". " : "");
+      const suite = el("button", "btn", "Continuer");
+      suite.type = "button";
+      suite.addEventListener("click", () => initParcours());
+      form.append(suite);
+    } else {
+      bilan.textContent = score + " Il en faut " + r.seuil + " pour valider. Relis le module puis réessaie.";
+      const encore = el("button", "btn", "Réessayer");
+      encore.type = "button";
+      encore.addEventListener("click", () => { zone.replaceChildren(); bouton.hidden = false; bouton.disabled = false; ouvrirQuiz(m, bouton, zone); });
+      form.append(encore);
+    }
+  });
+  zone.replaceChildren(form);
+}
+
 async function initParcours() {
   const zone = document.getElementById("parcours-liste");
   const msg = document.getElementById("parcours-message");
@@ -349,20 +417,11 @@ async function initParcours() {
         }
         li.append(t);
         if (m.disponible) {
-          const b = el("button", "btn", "J’ai terminé ce module");
+          const zq = el("div", "quiz");
+          const b = el("button", "btn", "Passer le quiz");
           b.type = "button";
-          b.addEventListener("click", async () => {
-            b.disabled = true;
-            try {
-              const v = await appeler("validerModule", { idModule: m.id });
-              if (v.erreur) { dire(v.erreur); b.disabled = false; return; }
-              dire(v.nouveauxBadges && v.nouveauxBadges.length
-                ? "Bravo ! Nouveau badge : " + v.nouveauxBadges.join(", ")
-                : "Module enregistré. Bravo !");
-              await charger();
-            } catch (e) { dire("Enregistrement impossible pour le moment. Réessaie plus tard."); b.disabled = false; }
-          });
-          li.append(b);
+          b.addEventListener("click", () => ouvrirQuiz(m, b, zq));
+          li.append(b, zq);
         }
         ol.append(li);
       });
