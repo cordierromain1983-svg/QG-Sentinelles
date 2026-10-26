@@ -153,6 +153,55 @@ function initPortfolio() {
   if (jeton()) agir(afficherProfil);
 }
 
+async function initMissions() {
+  const zone = document.getElementById("flash-liste");
+  const msg = document.getElementById("flash-message");
+  const dire = t => { msg.textContent = t || ""; msg.hidden = !t; };
+  if (!CONFIG.API_URL || !jeton()) {
+    zone.replaceChildren(el("p", "vide", "Connecte-toi dans « Mon parcours » pour voir tes missions de la semaine."));
+    return;
+  }
+  async function charger() {
+    let r;
+    try { r = await appeler("missionsSemaine"); }
+    catch (e) { zone.replaceChildren(el("p", "vide", "Impossible de charger les missions pour le moment. Réessaie plus tard.")); return; }
+    if (r.erreur) {
+      if (/expir/i.test(r.erreur)) sessionStorage.removeItem("qg_token");
+      zone.replaceChildren(el("p", "vide", r.erreur));
+      return;
+    }
+    const ul = el("ul", "missions");
+    r.missions.forEach(m => {
+      const li = el("li");
+      const t = el("div");
+      t.append(el("strong", null, m.titre), el("span", null, m.famille));
+      li.append(t);
+      if (m.fait) {
+        li.append(el("span", "fait", "✔ Faite"));
+      } else {
+        const b = el("button", "btn", "J’ai fait cette mission");
+        b.type = "button";
+        b.addEventListener("click", async () => {
+          b.disabled = true;
+          try {
+            const v = await appeler("faireMission", { codeMF: m.code });
+            if (v.erreur) { dire(v.erreur); b.disabled = false; return; }
+            dire(v.nouveauxBadges && v.nouveauxBadges.length
+              ? "Bravo ! Nouveau badge : " + v.nouveauxBadges.join(", ")
+              : "Mission enregistrée. Bravo !");
+            await charger();
+          } catch (e) { dire("Enregistrement impossible pour le moment. Réessaie plus tard."); b.disabled = false; }
+        });
+        li.append(b);
+      }
+      ul.append(li);
+    });
+    zone.replaceChildren(r.missions.length ? ul : el("p", "vide", "Aucune mission cette semaine."));
+  }
+  await charger();
+}
+
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
+if (document.body.dataset.page === "missions") initMissions();
