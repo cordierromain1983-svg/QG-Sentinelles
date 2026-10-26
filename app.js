@@ -201,7 +201,70 @@ async function initMissions() {
   await charger();
 }
 
+async function initParcours() {
+  const zone = document.getElementById("parcours-liste");
+  const msg = document.getElementById("parcours-message");
+  const dire = t => { msg.textContent = t || ""; msg.hidden = !t; };
+  if (!CONFIG.API_URL || !jeton()) {
+    zone.replaceChildren(el("p", "vide", "Connecte-toi dans « Mon parcours » pour suivre tes parcours de formation."));
+    return;
+  }
+  const ouverts = new Set();
+  async function charger() {
+    let r;
+    try { r = await appeler("parcours"); }
+    catch (e) { zone.replaceChildren(el("p", "vide", "Impossible de charger les parcours pour le moment. Réessaie plus tard.")); return; }
+    if (r.erreur) {
+      if (/expir/i.test(r.erreur)) sessionStorage.removeItem("qg_token");
+      zone.replaceChildren(el("p", "vide", r.erreur));
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    let premierOuvert = false;
+    r.parcours.forEach((p, i) => {
+      const d = el("details", "parcours-bloc");
+      const termine = p.total > 0 && p.faits === p.total;
+      if (ouverts.has(p.id) || (!ouverts.size && !premierOuvert && !termine)) { d.open = true; premierOuvert = true; }
+      d.addEventListener("toggle", () => { d.open ? ouverts.add(p.id) : ouverts.delete(p.id); });
+      d.append(el("summary", null, (termine ? "✔ " : "") + (i + 1) + ". " + p.titre + " (" + p.faits + "/" + p.total + ")"));
+      const c = el("div");
+      if (p.description) c.append(el("p", "chapo", p.description + (p.badge ? " · Badge : " + p.badge : "")));
+      const ol = el("ol", "modules");
+      p.modules.forEach(m => {
+        const li = el("li");
+        const t = el("div");
+        t.append(el("strong", null, m.titre), el("span", null, (m.fait ? "✔ Terminé" : m.disponible ? "À faire" : "À venir") + (m.duree ? " · " + m.duree : "")));
+        if (m.contenu && m.disponible) t.append(el("p", "contenu", m.contenu));
+        li.append(t);
+        if (m.disponible) {
+          const b = el("button", "btn", "J’ai terminé ce module");
+          b.type = "button";
+          b.addEventListener("click", async () => {
+            b.disabled = true;
+            try {
+              const v = await appeler("validerModule", { idModule: m.id });
+              if (v.erreur) { dire(v.erreur); b.disabled = false; return; }
+              dire(v.nouveauxBadges && v.nouveauxBadges.length
+                ? "Bravo ! Nouveau badge : " + v.nouveauxBadges.join(", ")
+                : "Module enregistré. Bravo !");
+              await charger();
+            } catch (e) { dire("Enregistrement impossible pour le moment. Réessaie plus tard."); b.disabled = false; }
+          });
+          li.append(b);
+        }
+        ol.append(li);
+      });
+      c.append(ol);
+      d.append(c);
+      frag.append(d);
+    });
+    zone.replaceChildren(frag);
+  }
+  await charger();
+}
+
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
+if (document.body.dataset.page === "parcours") initParcours();
