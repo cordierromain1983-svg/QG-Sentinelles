@@ -103,8 +103,8 @@ body>*:not(#doc-impression){display:none!important}
 .legal ul{padding-left:1.2rem}
 .legal .resume{background:#E7F4F3;border-left:6px solid var(--teal);padding:.8rem 1rem;border-radius:8px}
 @media print{.pied{display:none}}
-.visuels{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
-.visuels img{width:100%;height:auto;border-radius:12px;display:block}
+.logo-accueil{text-align:center;margin:0 0 1rem}
+.logo-accueil img{max-width:260px;width:100%;height:auto;border-radius:16px}
 @media(max-width:700px){.pied{padding-bottom:5.5rem}}
 .demande{border-bottom:1px solid var(--trait);margin-bottom:.6rem}
 .demande p{margin:.3rem 0}
