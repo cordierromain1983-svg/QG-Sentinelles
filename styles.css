@@ -106,3 +106,5 @@ body>*:not(#doc-impression){display:none!important}
 .visuels{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
 .visuels img{width:100%;height:auto;border-radius:12px;display:block}
 @media(max-width:700px){.pied{padding-bottom:5.5rem}}
+.demande{border-bottom:1px solid var(--trait);margin-bottom:.6rem}
+.demande p{margin:.3rem 0}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Espace référent · Le QG des Sentinelles</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="referent">
+<main>
+<h2>Espace référent</h2>
+<p class="chapo">Réservé aux référents Sentinelles. Chaque consultation et chaque action sont enregistrées.</p>
+<p id="message" class="alerte" role="status" aria-live="polite" hidden></p>
+
+<form id="zone-connexion" class="bloc outils">
+<h2>Connexion</h2>
+<label for="code">Identifiant référent</label>
+<input id="code" placeholder="REF-01" maxlength="6" autocomplete="username" autocapitalize="characters" required>
+<label for="mdp">Mot de passe (ou code provisoire)</label>
+<input id="mdp" type="password" autocomplete="current-password" required>
+<button class="btn" type="submit">Me connecter</button>
+</form>
+
+<form id="zone-changement" class="bloc outils" hidden>
+<h2>Choisis ton mot de passe</h2>
+<label for="nv-mdp">Nouveau mot de passe (8 caractères minimum)</label>
+<input id="nv-mdp" type="password" autocomplete="new-password" minlength="8" required>
+<label for="nv-mdp2">Répète-le</label>
+<input id="nv-mdp2" type="password" autocomplete="new-password" minlength="8" required>
+<button class="btn" type="submit">Enregistrer</button>
+</form>
+
+<div id="zone-ref" hidden>
+<div class="stats">
+<div><b id="r-nb">—</b><span>Sentinelles</span></div>
+<div><b id="r-mod">—</b><span>Modules validés</span></div>
+<div><b id="r-dem">—</b><span>Demandes à traiter</span></div>
+</div>
+<section class="bloc"><h2>Demandes de rendez-vous</h2><div id="r-demandes"></div></section>
+<section class="bloc"><h2>Suivi des Sentinelles</h2>
+<p class="chapo">Classées par code, jamais par résultat. Ne note rien de sensible dans les commentaires.</p>
+<div id="r-liste"></div></section>
+<button id="btn-deco" class="btn" type="button">Me déconnecter</button>
+</div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

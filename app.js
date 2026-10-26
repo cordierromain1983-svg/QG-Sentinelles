@@ -48,7 +48,9 @@ function construireCadre() {
   const pied = el("footer", "pied");
   const lien = el("a", null, "Mentions légales et confidentialité");
   lien.href = "mentions-legales.html";
-  pied.append(lien);
+  const ref = el("a", null, "Espace référent");
+  ref.href = "referent.html";
+  pied.append(lien, document.createTextNode(" · "), ref);
   document.body.append(pied);
 }
 
@@ -163,6 +165,7 @@ function initPortfolio() {
   async function afficherProfil() {
     const p = await appeler("profil");
     if (p.erreur) { sessionStorage.removeItem("qg_token"); montrer("zone-connexion"); dire(p.erreur); return; }
+    if (p.referent) { await appeler("deconnexion"); sessionStorage.removeItem("qg_token"); montrer("zone-connexion"); dire("Ce compte est un compte référent : utilise l’Espace référent (lien en bas de page)."); return; }
     if (p.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
     ID("p-niveau").textContent = p.niveau;
     ID("p-score").textContent = p.score;
@@ -428,9 +431,128 @@ async function initAccueil() {
   })();
 }
 
+async function initReferent() {
+  const ID = id => document.getElementById(id);
+  const zones = ["zone-connexion", "zone-changement", "zone-ref"];
+  const msg = ID("message");
+  const dire = t => { msg.textContent = t || ""; msg.hidden = !t; };
+  const montrer = id => zones.forEach(z => { ID(z).hidden = z !== id; });
+  const agir = async f => {
+    try { await f(); } catch (e) { dire("Connexion impossible pour le moment. Réessaie plus tard."); }
+  };
+  let vue = null;
+
+  function carte(s) {
+    const d = el("details");
+    d.append(el("summary", null, s.code + " · " + s.niveau + " · " + s.modules + "/" + vue.modulesTotal + " modules"));
+    const c = el("div");
+    c.append(el("p", null, "Missions Flash : " + s.missions + " · Défis : " + s.defis + " · Score : " + s.score));
+    if (!s.premiereConnexionFaite) c.append(el("p", "vide", "Pas encore connecté·e (mot de passe provisoire non changé)."));
+    c.append(el("p", null, "Badges (" + s.badges.length + ") : " + (s.badges.length ? s.badges.join(", ") : "aucun")));
+
+    const f = el("form", "outils");
+    const sel = el("select");
+    sel.setAttribute("aria-label", "Badge à attribuer");
+    vue.badgesManuels.forEach(b => { const o = el("option", null, b.famille + " · " + b.nom); o.value = b.id; sel.append(o); });
+    const com = el("input"); com.placeholder = "Commentaire (facultatif, 200 caractères)"; com.maxLength = 200;
+    com.setAttribute("aria-label", "Commentaire");
+    const ok = el("button", "btn", "Attribuer ce badge"); ok.type = "submit";
+    f.append(sel, com, ok);
+    f.addEventListener("submit", ev => { ev.preventDefault(); agir(async () => {
+      const r = await appeler("refBadge", { cible: s.code, idBadge: sel.value, commentaire: com.value });
+      if (r.erreur) { dire(r.erreur); return; }
+      dire("Badge « " + r.badge + " » attribué à " + s.code + ".");
+      await charger();
+    }); });
+    c.append(f);
+
+    if (vue.role === "admin") {
+      const b = el("button", "btn", "Réinitialiser le mot de passe"); b.type = "button";
+      let arme = false;
+      b.addEventListener("click", () => agir(async () => {
+        if (!arme) { arme = true; b.textContent = "Confirmer la réinitialisation de " + s.code; return; }
+        const r = await appeler("adminReinit", { cible: s.code });
+        arme = false; b.textContent = "Réinitialiser le mot de passe";
+        if (r.erreur) { dire(r.erreur); return; }
+        dire("Code provisoire de " + r.cible + " : " + r.provisoire + " — note-le maintenant, il ne sera plus affiché.");
+        window.scrollTo(0, 0);
+      }));
+      c.append(b);
+    }
+    d.append(c);
+    return d;
+  }
+
+  async function charger() {
+    const v = await appeler("refVue");
+    if (v.erreur) { sessionStorage.removeItem("qg_token"); montrer("zone-connexion"); dire(v.erreur); return; }
+    vue = v;
+    ID("r-nb").textContent = v.sentinelles.length;
+    ID("r-mod").textContent = v.sentinelles.reduce((t, s) => t + s.modules, 0);
+    ID("r-liste").replaceChildren(...v.sentinelles.map(carte));
+    const dm = await appeler("refDemandes");
+    const aTraiter = (dm.demandes || []).filter(x => x.statut !== "Traitée");
+    ID("r-dem").textContent = aTraiter.length;
+    ID("r-demandes").replaceChildren(...(aTraiter.length ? aTraiter.map(x => {
+      const p = el("div", "demande");
+      p.append(el("p", null, x.code + " · " + x.date + " · " + x.motif + (x.dispo ? " (dispo : " + x.dispo + ")" : "")));
+      const b = el("button", "btn", "Marquer comme traitée"); b.type = "button";
+      b.addEventListener("click", () => agir(async () => {
+        const r = await appeler("refTraiter", { id: x.id });
+        if (r.erreur) { dire(r.erreur); return; }
+        await charger();
+      }));
+      p.append(b);
+      return p;
+    }) : [el("p", "vide", "Aucune demande en attente.")]));
+    montrer("zone-ref");
+  }
+
+  ID("zone-connexion").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const r = await appeler("connexion", { code: ID("code").value, mdp: ID("mdp").value });
+      ID("mdp").value = "";
+      if (r.erreur) { dire(r.erreur); return; }
+      if (r.role !== "referent" && r.role !== "admin") {
+        sessionStorage.setItem("qg_token", r.token);
+        await appeler("deconnexion"); sessionStorage.removeItem("qg_token");
+        dire("Ce compte n’est pas un compte référent."); return;
+      }
+      sessionStorage.setItem("qg_token", r.token);
+      if (r.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
+      dire(""); await charger();
+    });
+  });
+
+  ID("zone-changement").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const a = ID("nv-mdp").value, b = ID("nv-mdp2").value;
+      if (a !== b) { dire("Les deux mots de passe ne sont pas identiques."); return; }
+      const r = await appeler("changerMdp", { nouveau: a });
+      if (r.erreur) { dire(r.erreur); return; }
+      ID("nv-mdp").value = ""; ID("nv-mdp2").value = "";
+      dire(""); await charger();
+    });
+  });
+
+  ID("btn-deco").addEventListener("click", () => agir(async () => {
+    await appeler("deconnexion");
+    sessionStorage.removeItem("qg_token");
+    montrer("zone-connexion");
+    dire("Tu es déconnecté·e.");
+  }));
+
+  montrer("zone-connexion");
+  if (!CONFIG.API_URL) { dire("La connexion n’est pas encore configurée."); return; }
+  if (jeton()) agir(charger);
+}
+
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
 if (document.body.dataset.page === "parcours") initParcours();
 if (document.body.dataset.page === "index") initAccueil();
+if (document.body.dataset.page === "referent") initReferent();
