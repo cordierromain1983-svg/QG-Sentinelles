@@ -1,7 +1,7 @@
 "use strict";
 
 // Étape 2 : coller ici l’adresse de l’application web Apps Script.
-const CONFIG = { API_URL: "" };
+const CONFIG = { API_URL: "https://cordierromain1983-svg.github.io/QG-Sentinelles/" };
 
 const PAGES = [
   { id: "index", href: "index.html", ico: "🏠", nom: "Accueil" },
@@ -23,7 +23,9 @@ async function lireFeuille(nom) {
   if (!CONFIG.API_URL) return null;
   const r = await fetch(CONFIG.API_URL + "?feuille=" + encodeURIComponent(nom));
   if (!r.ok) throw new Error("Réponse " + r.status);
-  return r.json();
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error("Données invalides");
+  return d;
 }
 
 function construireCadre() {
