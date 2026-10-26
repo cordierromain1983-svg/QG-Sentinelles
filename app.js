@@ -1,7 +1,7 @@
 "use strict";
 
 // Étape 2 : coller ici l’adresse de l’application web Apps Script.
-const CONFIG = { API_URL: "https://cordierromain1983-svg.github.io/QG-Sentinelles/" };
+const CONFIG = { API_URL: "https://script.google.com/macros/s/AKfycbyYt4ipAol5ihHZKybK7y8K6tc7pgijrnUIIxzsv6bQCgl8Vmri29zIgyDdE6vHrieU/exec" };
 
 const PAGES = [
   { id: "index", href: "index.html", ico: "🏠", nom: "Accueil" },
