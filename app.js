@@ -44,7 +44,15 @@ function construireCadre() {
     if (p.id === page) a.setAttribute("aria-current", "page");
     nav.append(a);
   });
-  document.body.prepend(haut, nav);
+  if (jeton() && page !== "referent") {
+    const q = el("button", "quitter", "Me déconnecter");
+    q.type = "button";
+    q.addEventListener("click", quitter);
+    haut.append(q);
+    document.body.prepend(haut, nav);
+  } else {
+    document.body.prepend(haut);
+  }
   const pied = el("footer", "pied");
   const lien = el("a", null, "Mentions légales et confidentialité");
   lien.href = "mentions-legales.html";
@@ -98,7 +106,18 @@ async function appeler(action, extra) {
     body: JSON.stringify(Object.assign({ action: action, token: jeton() }, extra || {}))
   });
   if (!r.ok) throw new Error("Réponse " + r.status);
-  return r.json();
+  const d = await r.json();
+  if (d && d.erreur && action !== "connexion") {
+    if (/Session expirée/.test(d.erreur)) { sessionStorage.removeItem("qg_token"); location.replace("index.html?s=expire"); return { erreur: d.erreur }; }
+    if (/Choisis d’abord ton mot de passe/.test(d.erreur) && document.body.dataset.page !== "index") { location.replace("index.html"); return { erreur: d.erreur }; }
+  }
+  return d;
+}
+
+async function quitter() {
+  try { await appeler("deconnexion"); } catch (e) { /* on quitte quand même */ }
+  sessionStorage.removeItem("qg_token");
+  location.replace("index.html");
 }
 
 function dateDuJour() { return new Date().toLocaleDateString("fr-FR"); }
@@ -214,10 +233,7 @@ function initPortfolio() {
   ID("btn-certificat").addEventListener("click", () => agir(() => document_("certificat")));
 
   ID("btn-deco").addEventListener("click", () => agir(async () => {
-    await appeler("deconnexion");
-    sessionStorage.removeItem("qg_token");
-    montrer("zone-connexion");
-    dire("Tu es déconnecté·e.");
+    await quitter();
   }));
 
   montrer("zone-connexion");
@@ -351,6 +367,55 @@ function enCours(l, debut, fin) {
 
 function remplir(id, contenu) {
   document.getElementById(id).replaceChildren(contenu);
+}
+
+function initEntree() {
+  const ID = id => document.getElementById(id);
+  const msg = ID("message");
+  const dire = t => { msg.textContent = t || ""; msg.hidden = !t; };
+  const agir = async f => {
+    try { await f(); } catch (e) { dire("Connexion impossible pour le moment. Réessaie plus tard."); }
+  };
+  const montrer = id => ["zone-connexion", "zone-changement", "zone-accueil"].forEach(z => { ID(z).hidden = z !== id; });
+
+  const ouvrir = async () => {
+    const p = await appeler("profil");
+    if (p.erreur) { montrer("zone-connexion"); dire(p.erreur); return; }
+    if (p.referent) { location.replace("referent.html"); return; }
+    if (p.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
+    montrer("zone-accueil"); initAccueil();
+  };
+  montrer("zone-connexion");
+  if (/[?&]s=expire/.test(location.search)) dire("Ta session a expiré. Reconnecte-toi.");
+  if (!CONFIG.API_URL) { dire("La connexion n’est pas encore configurée."); return; }
+  if (jeton()) agir(ouvrir);
+
+  ID("zone-connexion").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const r = await appeler("connexion", { code: ID("code").value, mdp: ID("mdp").value });
+      ID("mdp").value = "";
+      if (r.erreur) { dire(r.erreur); return; }
+      sessionStorage.setItem("qg_token", r.token);
+      if (r.doitChanger) { montrer("zone-changement"); dire("Première connexion : choisis ton mot de passe personnel."); return; }
+      if (r.role === "referent" || r.role === "admin") { location.replace("referent.html"); return; }
+      location.replace("index.html");
+    });
+  });
+
+  ID("zone-changement").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const x = ID("nv-mdp").value, y = ID("nv-mdp2").value;
+      if (x !== y) { dire("Les deux mots de passe ne sont pas identiques."); return; }
+      const r = await appeler("changerMdp", { nouveau: x });
+      if (r.erreur) { dire(r.erreur); return; }
+      ID("nv-mdp").value = ""; ID("nv-mdp2").value = "";
+      const p = await appeler("profil");
+      if (p.referent) { location.replace("referent.html"); return; }
+      location.replace("index.html");
+    });
+  });
 }
 
 async function initAccueil() {
@@ -549,10 +614,15 @@ async function initReferent() {
   if (jeton()) agir(charger);
 }
 
+const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq"];
+if (PAGES_PROTEGEES.indexOf(document.body.dataset.page) >= 0 && !jeton()) {
+  location.replace("index.html");
+  throw new Error("Connexion requise");
+}
 construireCadre();
 if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
 if (document.body.dataset.page === "parcours") initParcours();
-if (document.body.dataset.page === "index") initAccueil();
+if (document.body.dataset.page === "index") initEntree();
 if (document.body.dataset.page === "referent") initReferent();

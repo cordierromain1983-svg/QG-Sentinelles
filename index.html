@@ -8,13 +8,37 @@
 </head>
 <body data-page="index">
 <main>
+<div class="logo-accueil"><img src="img/mission-sentinelle.jpg" alt="Mission Sentinelle : voir, écouter, agir, protéger" width="780" height="780"></div>
+<p id="message" class="alerte" role="status" aria-live="polite" hidden></p>
+
+<form id="zone-connexion" class="bloc outils" hidden>
+<h2>Bienvenue au QG</h2>
+<p class="chapo">Connecte-toi pour accéder à ton espace.</p>
+<label for="code">Ton identifiant</label>
+<input id="code" placeholder="SNT-001" maxlength="7" autocomplete="username" autocapitalize="characters" required>
+<label for="mdp">Mot de passe (ou code provisoire)</label>
+<input id="mdp" type="password" autocomplete="current-password" required>
+<button class="btn" type="submit">Me connecter</button>
+<p class="chapo">Première connexion ? Saisis le code provisoire remis par ton référent. Mot de passe oublié ? Demande un nouveau code à un référent.</p>
+</form>
+
+<form id="zone-changement" class="bloc outils" hidden>
+<h2>Choisis ton mot de passe</h2>
+<label for="nv-mdp">Nouveau mot de passe (8 caractères minimum)</label>
+<input id="nv-mdp" type="password" autocomplete="new-password" minlength="8" required>
+<label for="nv-mdp2">Répète-le</label>
+<input id="nv-mdp2" type="password" autocomplete="new-password" minlength="8" required>
+<button class="btn" type="submit">Enregistrer</button>
+</form>
+
+<div id="zone-accueil" hidden>
 <h2>Bienvenue au QG</h2>
 <p class="chapo">Apprends, agis et suis ta progression toute l’année.</p>
-<div class="logo-accueil"><img src="img/mission-sentinelle.jpg" alt="Mission Sentinelle : voir, écouter, agir, protéger" width="780" height="780"></div>
 <section class="bloc flash"><h2>Mission Flash de la semaine</h2><div id="acc-mission"><p class="vide">Chargement…</p></div></section>
 <section class="bloc"><h2>Défi du mois</h2><div id="acc-defi"><p class="vide">Chargement…</p></div></section>
 <section class="bloc"><h2>Actualité</h2><div id="acc-actus"><p class="vide">Chargement…</p></div></section>
 <section class="bloc"><h2>Ma progression</h2><div id="acc-progression"><p class="vide">Chargement…</p></div></section>
+</div>
 </main>
 <script src="app.js"></script>
 </body>

@@ -108,3 +108,6 @@ body>*:not(#doc-impression){display:none!important}
 @media(max-width:700px){.pied{padding-bottom:5.5rem}}
 .demande{border-bottom:1px solid var(--trait);margin-bottom:.6rem}
 .demande p{margin:.3rem 0}
+.haut{position:relative}
+.quitter{position:absolute;top:.6rem;right:.6rem;padding:.35rem .7rem;border:1px solid rgba(255,255,255,.6);border-radius:8px;background:transparent;color:#fff;font:inherit;font-size:.8rem}
+@media print{.quitter{display:none}}
