@@ -292,3 +292,10 @@ body>*:not(#doc-impression){display:none!important}
 
 .attente{position:fixed;left:50%;top:.8rem;transform:translateX(-50%);z-index:20;max-width:calc(100% - 2rem);margin:0;padding:.6rem 1rem;border-radius:999px;background:var(--or);color:#031536;font-weight:800;font-size:.9rem;box-shadow:0 4px 18px rgba(0,0,0,.45);text-align:center}
 .attente[hidden]{display:none}
+
+.urgence-publique{margin:0 0 1rem;padding:.9rem 1rem;border:2px solid #FF7A63;border-radius:14px;background:rgba(217,56,42,.12)}
+body.connecte .urgence-publique{display:none}
+.urgence-publique h2{margin:0 0 .2rem;font-size:1rem}
+.urgence-publique p{margin:.25rem 0}
+.urgence-publique .appel-pub{display:block;padding:.55rem .7rem;border-radius:10px;background:rgba(3,21,54,.6);color:#fff;text-decoration:none}
+.urgence-publique .appel-pub strong{font-size:1.4rem;color:var(--or-clair);margin-right:.4rem}
