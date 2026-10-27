@@ -256,7 +256,7 @@ function initPortfolio() {
     const d = await appeler("portfolio");
     if (d.erreur) { dire(d.erreur); return; }
     if (type === "certificat" && !d.certificat) {
-      dire("Le certificat se débloque quand tu as terminé le parcours « Sentinelle Confirmée ».");
+      dire("Le certificat se débloque quand tu as terminé le socle commun, les parcours de tes missions et le parcours « Sentinelle Confirmée ».");
       return;
     }
     dire("");
@@ -410,12 +410,20 @@ async function initParcours() {
     }
     const frag = document.createDocumentFragment();
     let premierOuvert = false;
-    r.parcours.forEach((p, i) => {
+    if (r.missions && r.missions.length) frag.append(el("p", "mes-missions", "Tes missions : " + r.missions.join(" · ")));
+    const ordonnes = r.parcours.filter(p => p.recommande).concat(r.parcours.filter(p => !p.recommande));
+    let extraAnnonce = false;
+    ordonnes.forEach(p => {
+      if (!p.recommande && !extraAnnonce) {
+        extraAnnonce = true;
+        frag.append(el("h3", "pour-aller-plus-loin", "Pour aller plus loin"),
+                    el("p", "chapo", "Ces parcours correspondent aux missions que tu n’as pas choisies. Ils sont ouverts si tu as envie de les suivre."));
+      }
       const d = el("details", "parcours-bloc");
       const termine = p.total > 0 && p.faits === p.total;
       if (ouverts.has(p.id) || (!ouverts.size && !premierOuvert && !termine)) { d.open = true; premierOuvert = true; }
       d.addEventListener("toggle", () => { d.open ? ouverts.add(p.id) : ouverts.delete(p.id); });
-      d.append(el("summary", null, (termine ? "✔ " : "") + (i + 1) + ". " + p.titre + " (" + p.faits + "/" + p.total + ")"));
+      d.append(el("summary", null, (termine ? "✔ " : "") + p.ordre + ". " + p.titre + " (" + p.faits + "/" + p.total + ")"));
       const c = el("div");
       if (p.description) c.append(el("p", "chapo", p.description + (p.badge ? " · Badge : " + p.badge : "")));
       const ol = el("ol", "modules");

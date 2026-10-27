@@ -222,3 +222,6 @@ body>*:not(#doc-impression){display:none!important}
 .doc-medailles{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0}
 .doc-medailles .medaille{width:2.2cm;height:2.2cm;filter:none}
 @media print{.doc,.doc *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+.mes-missions{margin:.2rem 0 .8rem;color:var(--or-clair);font-weight:700;letter-spacing:.04em}
+.pour-aller-plus-loin{margin:1.4rem 0 .3rem;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brume)}
