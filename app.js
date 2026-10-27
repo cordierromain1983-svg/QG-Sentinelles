@@ -32,6 +32,15 @@ function icone(nom) {
   return svg;
 }
 
+// Affiche l’annonce de badge juste sous un message (après avoir retiré la précédente).
+function annoncerSur(msg, noms) {
+  const ancien = msg.parentNode.querySelector(".annonce-badge");
+  if (ancien) ancien.remove();
+  if (!noms || !noms.length) return;
+  const tmp = document.createElement("div");
+  annonceBadges(noms, tmp).then(() => { const z = tmp.firstChild; if (z) msg.after(z); });
+}
+
 function el(tag, cls, txt) {
   const e = document.createElement(tag);
   if (cls) e.className = cls;
@@ -171,6 +180,13 @@ function imprimerDocument(type, d) {
     });
     ligne(doc, "h2", null, "Mes badges");
     if (d.badges.length) {
+      if (CATALOGUE_BADGES) {
+        const rang = ligne(doc, "div", "doc-medailles");
+        d.badges.forEach(b => {
+          const info = CATALOGUE_BADGES.filter(x => x.nom === b.nom)[0];
+          if (info) rang.append(medaille(info, true));
+        });
+      }
       const ul = ligne(doc, "ul");
       d.badges.forEach(b => ligne(ul, "li", null, b.nom + (b.date ? " (" + b.date + ")" : "")));
     } else ligne(doc, "p", null, "Aucun badge pour l’instant.");
@@ -208,9 +224,7 @@ function initPortfolio() {
     ID("p-niveau").textContent = p.niveau;
     ID("p-score").textContent = p.score;
     ID("p-badges").textContent = p.badges.length;
-    ID("liste-badges").replaceChildren(...(p.badges.length
-      ? p.badges.map(b => el("li", null, b))
-      : [el("li", null, "Aucun badge pour l’instant.")]));
+    await murBadges(ID("liste-badges"), p.badges);
     montrer("zone-profil");
     dire("");
   }
@@ -293,9 +307,8 @@ async function initMissions() {
           try {
             const v = await appeler("faireMission", { codeMF: m.code });
             if (v.erreur) { dire(v.erreur); b.disabled = false; return; }
-            dire(v.nouveauxBadges && v.nouveauxBadges.length
-              ? "Bravo ! Nouveau badge : " + v.nouveauxBadges.join(", ")
-              : "Mission enregistrée. Bravo !");
+            dire(v.nouveauxBadges && v.nouveauxBadges.length ? "Bravo !" : "Mission enregistrée. Bravo !");
+            annoncerSur(msg, v.nouveauxBadges);
             await charger();
           } catch (e) { dire("Enregistrement impossible pour le moment. Réessaie plus tard."); b.disabled = false; }
         });
@@ -360,7 +373,8 @@ async function ouvrirQuiz(m, bouton, zone) {
     });
     const score = r.bonnes + " bonne" + (r.bonnes > 1 ? "s" : "") + " réponse" + (r.bonnes > 1 ? "s" : "") + " sur " + r.total + ".";
     if (r.reussi) {
-      bilan.textContent = score + " Module validé ! " + (r.nouveauxBadges && r.nouveauxBadges.length ? "Nouveau badge : " + r.nouveauxBadges.join(", ") + ". " : "");
+      bilan.textContent = score + " Module validé !";
+      annonceBadges(r.nouveauxBadges, form);
       const suite = el("button", "btn", "Continuer");
       suite.type = "button";
       suite.addEventListener("click", () => initParcours());
