@@ -323,3 +323,5 @@ body.connecte .urgence-publique{display:none}
 .res-contenu p{margin:.3rem 0}
 .res-lien h3{margin:0;font-size:1.05rem}
 .res-lien .btn{display:inline-block;margin-top:.3rem;text-decoration:none}
+
+.cps-etiquette { display: inline-block; margin-top: .35rem; padding: .15rem .6rem; border: 1px solid var(--trait); border-radius: 999px; color: var(--or-clair); font-size: .8rem; }

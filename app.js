@@ -450,6 +450,17 @@ async function ouvrirQuiz(m, bouton, zone, opt) {
   zone.replaceChildren(form);
 }
 
+async function chargerCPS() {
+  try {
+    const [mods, comps] = await Promise.all([lireFeuille("MODULES"), lireFeuille("COMPETENCES")]);
+    const parComp = {};
+    comps.forEach(c => { if (c.CPS) parComp[c.ID_Competence] = c.CPS; });
+    const carte = {};
+    mods.forEach(m => { if (parComp[m.Competence_Principale]) carte[m.ID_Module] = parComp[m.Competence_Principale]; });
+    return carte;
+  } catch (e) { return {}; }
+}
+
 async function initParcours() {
   const zone = document.getElementById("parcours-liste");
   const msg = document.getElementById("parcours-message");
@@ -459,6 +470,7 @@ async function initParcours() {
     return;
   }
   const ouverts = new Set();
+  const cps = await chargerCPS();
   async function charger() {
     let r;
     try { r = await appeler("parcours"); }
@@ -491,6 +503,7 @@ async function initParcours() {
         const li = el("li");
         const t = el("div");
         t.append(el("strong", null, m.titre), el("span", null, (m.fait ? "✔ Terminé" : m.disponible ? "À faire" : "À venir") + (m.duree ? " · " + m.duree : "")));
+        if (cps[m.id]) t.append(el("span", "cps-etiquette", "Tu travailles : " + cps[m.id]));
         if (m.contenu && m.disponible) t.append(el("p", "contenu", m.contenu));
         else if (m.contenu && m.fait) {
           const dd = el("details", "relire");
