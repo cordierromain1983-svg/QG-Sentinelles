@@ -136,7 +136,55 @@ async function initFaq() {
 
 function jeton() { return sessionStorage.getItem("qg_token") || ""; }
 
+// Retour visuel pendant l’attente du serveur (Apps Script peut mettre quelques secondes à répondre).
+let appelsEnCours = 0, minuteurAttente = null, boutonsOccupes = [];
+function messageAttente(action) {
+  if (action === "connexion") return "Connexion en cours… cela peut prendre quelques secondes.";
+  if (/^repondre/.test(action)) return "Validation en cours… ne ferme pas la page.";
+  return "Chargement… un instant.";
+}
+function debutAttente(action) {
+  appelsEnCours++;
+  if (appelsEnCours > 1) return;
+  clearTimeout(minuteurAttente);
+  minuteurAttente = setTimeout(() => {
+    let b = document.getElementById("attente");
+    if (!b) {
+      b = el("p", "attente");
+      b.id = "attente";
+      b.setAttribute("role", "status");
+      b.setAttribute("aria-live", "polite");
+      document.body.append(b);
+    }
+    b.textContent = messageAttente(action);
+    b.hidden = false;
+  }, 400);
+}
+function finAttente() {
+  appelsEnCours = Math.max(0, appelsEnCours - 1);
+  if (appelsEnCours > 0) return;
+  clearTimeout(minuteurAttente);
+  const b = document.getElementById("attente");
+  if (b) b.hidden = true;
+  boutonsOccupes.forEach(([btn, txt]) => { btn.disabled = false; btn.textContent = txt; });
+  boutonsOccupes = [];
+}
+// Bouton d’envoi d’un formulaire : désactivé et renommé pendant l’appel (évite le double clic).
+document.addEventListener("submit", ev => {
+  const btn = ev.submitter || ev.target.querySelector("button[type=submit]");
+  if (!btn || btn.disabled || appelsEnCours === 0) return;
+  boutonsOccupes.push([btn, btn.textContent]);
+  btn.disabled = true;
+  btn.textContent = "Un instant…";
+});
+
 async function appeler(action, extra) {
+  debutAttente(action);
+  try { return await appelerBrut(action, extra); }
+  finally { finAttente(); }
+}
+
+async function appelerBrut(action, extra) {
   const r = await fetch(CONFIG.API_URL, {
     method: "POST",
     body: JSON.stringify(Object.assign({ action: action, token: jeton() }, extra || {}))
@@ -369,9 +417,12 @@ async function ouvrirQuiz(m, bouton, zone, opt) {
     });
     if (Object.keys(reponses).length < d.questions.length) { bilan.textContent = "Réponds aux " + d.questions.length + " questions avant de valider."; return; }
     env.disabled = true;
+    const libelle = env.textContent;
+    env.textContent = "Validation en cours…";
     let r;
     try { r = await appeler(opt.rep, { [opt.cle]: m.id, reponses: reponses }); }
-    catch (e) { bilan.textContent = "Envoi impossible pour le moment. Réessaie plus tard."; env.disabled = false; return; }
+    catch (e) { bilan.textContent = "Envoi impossible pour le moment. Réessaie plus tard."; env.disabled = false; env.textContent = libelle; return; }
+    env.textContent = libelle;
     if (r.erreur) { bilan.textContent = r.erreur; env.disabled = false; return; }
     r.resultats.forEach(x => {
       const fs = form.querySelector('fieldset[data-id="' + x.id + '"]');

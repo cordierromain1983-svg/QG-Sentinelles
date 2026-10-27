@@ -289,3 +289,6 @@ body>*:not(#doc-impression){display:none!important}
 .fiche-limite p{margin:0;font-weight:700}
 .liste-fiche.liens li::before{content:"→"}
 .liste-fiche a{color:var(--or-clair);font-weight:700;overflow-wrap:anywhere}
+
+.attente{position:fixed;left:50%;top:.8rem;transform:translateX(-50%);z-index:20;max-width:calc(100% - 2rem);margin:0;padding:.6rem 1rem;border-radius:999px;background:var(--or);color:#031536;font-weight:800;font-size:.9rem;box-shadow:0 4px 18px rgba(0,0,0,.45);text-align:center}
+.attente[hidden]{display:none}
