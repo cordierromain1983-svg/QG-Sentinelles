@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ressources · Le QG des Sentinelles</title>
+<meta name="theme-color" content="#031536">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="img/icone.svg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="QG Sentinelles">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="ressources">
+<main>
+<h2>Ressources</h2>
+<p class="chapo">Des fiches pour comprendre et agir, et des liens officiels vérifiés. Choisis une mission ou cherche un mot.</p>
+<div class="outils">
+<input id="res-recherche" type="search" placeholder="Chercher (rumeur, 3018, preuve…)" aria-label="Chercher une ressource">
+<select id="res-type" aria-label="Type de ressource"><option value="">Tous les types</option></select>
+</div>
+<div id="res-familles" class="puces" role="group" aria-label="Filtrer par mission"></div>
+<p id="res-compte" class="discret" role="status" aria-live="polite"></p>
+<div id="res-liste"><p class="vide">Chargement…</p></div>
+<p class="discret">Les liens « site officiel » ouvrent un site extérieur au QG. En cas d’urgence : <a href="urgence.html">numéros d’urgence</a>.</p>
+</main>
+<script src="badges.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -306,3 +306,20 @@ body.connecte .urgence-publique{display:none}
 .message-texte{margin:.2rem 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .lien-discret{background:none;border:0;color:var(--brume);text-decoration:underline;font:inherit;font-size:.8rem;padding:.2rem 0;cursor:pointer}
 #msg-form textarea{width:100%;font:inherit}
+
+.faq-explication{margin:.2rem 0 .8rem;font-size:1.02rem;line-height:1.55}
+
+/* Ressources */
+.puces{display:flex;flex-wrap:wrap;gap:.4rem;margin:.2rem 0 .6rem}
+.puce{padding:.4rem .85rem;border-radius:999px;border:1px solid var(--trait);background:rgba(3,21,54,.6);color:inherit;font:inherit;font-size:.9rem;cursor:pointer}
+.puce[aria-pressed="true"]{background:var(--or);color:#031536;border-color:var(--or);font-weight:800}
+.puce:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.res-carte{margin:.6rem 0;padding:.8rem .95rem;border:1px solid var(--trait);border-radius:12px;background:linear-gradient(180deg,rgba(14,40,92,.82),rgba(8,29,70,.82))}
+.res-carte summary{cursor:pointer;display:block}
+.res-carte summary strong{display:block;color:#fff}
+.res-meta{display:block;margin:.15rem 0 0;font-size:.8rem;opacity:.75}
+.res-resume{margin:.4rem 0}
+.res-contenu h4{margin:.9rem 0 .3rem;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--or-clair)}
+.res-contenu p{margin:.3rem 0}
+.res-lien h3{margin:0;font-size:1.05rem}
+.res-lien .btn{display:inline-block;margin-top:.3rem;text-decoration:none}

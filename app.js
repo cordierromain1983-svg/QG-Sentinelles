@@ -116,12 +116,13 @@ async function initFaq() {
     const rub = choix.value;
     const frag = document.createDocumentFragment();
     let courante = "";
-    data.filter(f => (!rub || f.Rubrique === rub) && (!mot || (f.Titre + " " + f.Question).toLowerCase().includes(mot)))
+    data.filter(f => (!rub || f.Rubrique === rub) && (!mot || (f.Titre + " " + f.Question + " " + (f.Explication || "")).toLowerCase().includes(mot)))
       .forEach(f => {
         if (f.Rubrique !== courante) { courante = f.Rubrique; frag.append(el("h2", "rubrique", courante)); }
         const d = el("details");
         d.append(el("summary", null, f.Titre));
         const c = el("div");
+        if (f.Explication) c.append(el("p", "faq-explication", f.Explication));
         [["Je peux", f.Je_Peux], ["J’évite", f.JEvite], ["Je demande de l’aide quand", f.Quand_Demander_Aide], ["À retenir", f.A_Retenir]]
           .forEach(([t, v]) => { if (v) { const p = el("p"); p.append(el("strong", null, t + " : "), document.createTextNode(v)); c.append(p); } });
         d.append(c); frag.append(d);
@@ -893,7 +894,7 @@ async function initFiches() {
     const plus = el("section", "fiche-bloc");
     plus.append(el("h4", null, "Pour aller plus loin"));
     const ul2 = el("ul", "liste-fiche liens");
-    const liens = [["J’apprends : les parcours " + f.Famille, "parcours.html"], ["J’agis : les Missions Flash", "missions.html"], ["Numéros d’urgence et d’écoute", "urgence.html"]];
+    const liens = [["Ressources et fiches : " + f.Famille, "ressources.html"], ["J’apprends : les parcours " + f.Famille, "parcours.html"], ["J’agis : les Missions Flash", "missions.html"], ["Numéros d’urgence et d’écoute", "urgence.html"]];
     String(f.Liens || "").split("\n").forEach(l => { const [lib, url] = l.split("|"); if (lib && url) liens.push([lib.trim(), url.trim()]); });
     liens.forEach(([lib, url]) => { const li = el("li"); li.append(lienFiche(lib, url)); ul2.append(li); });
     plus.append(ul2);
@@ -903,7 +904,77 @@ async function initFiches() {
   zone.replaceChildren(frag);
 }
 
-const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq", "urgence", "fiches"];
+// Bibliothèque de ressources : fiches internes (texte du Sheet) et liens officiels vérifiés.
+function contenuRessource(texte) {
+  const bloc = el("div", "res-contenu");
+  let ul = null;
+  String(texte || "").split("\n").forEach(l => {
+    const t = l.trim();
+    if (!t) { ul = null; return; }
+    if (t.indexOf("## ") === 0) { ul = null; bloc.append(el("h4", null, t.slice(3))); return; }
+    if (t.indexOf("- ") === 0) { if (!ul) { ul = el("ul", "liste-fiche"); bloc.append(ul); } ul.append(el("li", null, t.slice(2))); return; }
+    ul = null; bloc.append(el("p", null, t));
+  });
+  return bloc;
+}
+async function initRessources() {
+  const zone = document.getElementById("res-liste");
+  const champ = document.getElementById("res-recherche");
+  const selType = document.getElementById("res-type");
+  const puces = document.getElementById("res-familles");
+  const compte = document.getElementById("res-compte");
+  let data;
+  try { data = await lireFeuille("RESSOURCES"); }
+  catch (e) { zone.replaceChildren(el("p", "vide", "Impossible de charger les ressources pour le moment. Réessaie plus tard.")); return; }
+  data = (data || []).filter(r => r.Actif === "Oui");
+  if (!data.length) { zone.replaceChildren(el("p", "vide", "Les ressources arrivent bientôt.")); return; }
+  const ordreType = { "Numéro": 0, "Fiche": 1, "Guide": 2, "Site officiel": 3 };
+  data.sort((a, b) => ((a.Famille === "Urgence" ? 0 : 1) - (b.Famille === "Urgence" ? 0 : 1)) || ((ordreType[a.Type] ?? 9) - (ordreType[b.Type] ?? 9)));
+  [...new Set(data.map(r => r.Type))].forEach(t => { const o = el("option", null, t); o.value = t; selType.append(o); });
+  let famille = "";
+  const familles = ["", "Voir", "Écouter", "Agir", "Protéger", "Socle", "Urgence"];
+  const nomFamille = f => f || "Tout";
+  familles.forEach(f => {
+    const b = el("button", "puce", nomFamille(f)); b.type = "button";
+    b.setAttribute("aria-pressed", f === famille ? "true" : "false");
+    b.addEventListener("click", () => { famille = f; puces.querySelectorAll(".puce").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); afficher(); });
+    puces.append(b);
+  });
+  function carte(r) {
+    const lien = r.Lien || "";
+    const meta = [r.Type, r.Duree, r.Source].filter(x => x).join(" · ");
+    if (r.Contenu) {
+      const d = el("details", "res-carte");
+      const s = el("summary"); s.append(el("strong", null, r.Titre), el("span", "res-meta", meta));
+      d.append(s, el("p", "res-resume", r.Resume), contenuRessource(r.Contenu));
+      return d;
+    }
+    const c = el("article", "res-carte res-lien");
+    c.append(el("h3", null, r.Titre), el("p", "res-meta", meta), el("p", "res-resume", r.Resume));
+    if (lien) {
+      const a = el("a", "btn", /^tel:/.test(lien) ? "Appeler" : "Ouvrir le site");
+      a.href = lien;
+      if (/^https?:/.test(lien)) { a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(el("span", "ext", " ↗")); }
+      c.append(a);
+    }
+    if (r.Verifie_le) c.append(el("p", "discret", "Lien vérifié le " + r.Verifie_le.split("-").reverse().join("/") + "."));
+    return c;
+  }
+  function afficher() {
+    const mot = champ.value.trim().toLowerCase();
+    const type = selType.value;
+    const liste = data.filter(r => (!famille || r.Famille === famille) && (!type || r.Type === type) &&
+      (!mot || (r.Titre + " " + r.Resume + " " + r.Contenu + " " + r.Source).toLowerCase().includes(mot)));
+    compte.textContent = liste.length + (liste.length > 1 ? " ressources" : " ressource");
+    if (!liste.length) { zone.replaceChildren(el("p", "vide", "Aucun résultat. Essaie un autre mot ou une autre mission.")); return; }
+    zone.replaceChildren(...liste.map(carte));
+  }
+  champ.addEventListener("input", afficher);
+  selType.addEventListener("change", afficher);
+  afficher();
+}
+
+const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq", "urgence", "fiches", "ressources"];
 if (PAGES_PROTEGEES.indexOf(document.body.dataset.page) >= 0 && !jeton()) {
   location.replace("index.html");
   throw new Error("Connexion requise");
@@ -914,5 +985,6 @@ if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
 if (document.body.dataset.page === "parcours") initParcours();
 if (document.body.dataset.page === "fiches") initFiches();
+if (document.body.dataset.page === "ressources") initRessources();
 if (document.body.dataset.page === "index") initEntree();
 if (document.body.dataset.page === "referent") initReferent();
