@@ -300,19 +300,18 @@ async function initMissions() {
       if (m.fait) {
         li.append(el("span", "fait", "✔ Faite"));
       } else {
-        const b = el("button", "btn", "J’ai fait cette mission");
+        if (m.consigne) t.append(el("p", "consigne", m.consigne));
+        if (m.duree) t.append(el("span", "duree", "⏱ " + m.duree));
+        const zq = el("div", "quiz");
+        const b = el("button", "btn", "J’ai fait la mission : prouver en 2 questions");
         b.type = "button";
-        b.addEventListener("click", async () => {
-          b.disabled = true;
-          try {
-            const v = await appeler("faireMission", { codeMF: m.code });
-            if (v.erreur) { dire(v.erreur); b.disabled = false; return; }
-            dire(v.nouveauxBadges && v.nouveauxBadges.length ? "Bravo !" : "Mission enregistrée. Bravo !");
-            annoncerSur(msg, v.nouveauxBadges);
-            await charger();
-          } catch (e) { dire("Enregistrement impossible pour le moment. Réessaie plus tard."); b.disabled = false; }
-        });
-        li.append(b);
+        b.addEventListener("click", () => ouvrirQuiz({ id: m.code }, b, zq, {
+          quiz: "quizMission", rep: "repondreMission", cle: "codeMF", ok: "Mission validée, bravo !",
+          relire: "Relis la consigne puis réessaie.",
+          dire: dire,
+          apres: async () => { await charger(); }
+        }));
+        li.append(b, zq);
       }
       ul.append(li);
     });
@@ -321,12 +320,13 @@ async function initMissions() {
   await charger();
 }
 
-// Quiz d’un module : 3 questions à choix, correction immédiate, module validé à 2 bonnes réponses sur 3.
-async function ouvrirQuiz(m, bouton, zone) {
-  const dire = t => { const p = document.getElementById("parcours-message"); p.textContent = t || ""; p.hidden = !t; };
+// Quiz (module ou Mission Flash) : questions à choix, correction immédiate avec explications.
+// opt : { quiz, rep, cle, dire, apres, ok, relire }
+async function ouvrirQuiz(m, bouton, zone, opt) {
+  const dire = opt.dire;
   bouton.disabled = true;
   let d;
-  try { d = await appeler("quiz", { idModule: m.id }); }
+  try { d = await appeler(opt.quiz, { [opt.cle]: m.id }); }
   catch (e) { dire("Quiz indisponible pour le moment. Réessaie plus tard."); bouton.disabled = false; return; }
   if (d.erreur) { dire(d.erreur); bouton.disabled = false; return; }
   dire("");
@@ -362,7 +362,7 @@ async function ouvrirQuiz(m, bouton, zone) {
     if (Object.keys(reponses).length < d.questions.length) { bilan.textContent = "Réponds aux " + d.questions.length + " questions avant de valider."; return; }
     env.disabled = true;
     let r;
-    try { r = await appeler("repondreQuiz", { idModule: m.id, reponses: reponses }); }
+    try { r = await appeler(opt.rep, { [opt.cle]: m.id, reponses: reponses }); }
     catch (e) { bilan.textContent = "Envoi impossible pour le moment. Réessaie plus tard."; env.disabled = false; return; }
     if (r.erreur) { bilan.textContent = r.erreur; env.disabled = false; return; }
     r.resultats.forEach(x => {
@@ -373,17 +373,17 @@ async function ouvrirQuiz(m, bouton, zone) {
     });
     const score = r.bonnes + " bonne" + (r.bonnes > 1 ? "s" : "") + " réponse" + (r.bonnes > 1 ? "s" : "") + " sur " + r.total + ".";
     if (r.reussi) {
-      bilan.textContent = score + " Module validé !";
+      bilan.textContent = score + " " + opt.ok;
       annonceBadges(r.nouveauxBadges, form);
       const suite = el("button", "btn", "Continuer");
       suite.type = "button";
-      suite.addEventListener("click", () => initParcours());
+      suite.addEventListener("click", () => opt.apres());
       form.append(suite);
     } else {
-      bilan.textContent = score + " Il en faut " + r.seuil + " pour valider. Relis le module puis réessaie.";
+      bilan.textContent = score + " Il faut " + (r.seuil === r.total ? "tout juste" : r.seuil + " bonnes réponses") + " pour valider. " + opt.relire;
       const encore = el("button", "btn", "Réessayer");
       encore.type = "button";
-      encore.addEventListener("click", () => { zone.replaceChildren(); bouton.hidden = false; bouton.disabled = false; ouvrirQuiz(m, bouton, zone); });
+      encore.addEventListener("click", () => { zone.replaceChildren(); bouton.hidden = false; bouton.disabled = false; ouvrirQuiz(m, bouton, zone, opt); });
       form.append(encore);
     }
   });
@@ -442,7 +442,10 @@ async function initParcours() {
           const zq = el("div", "quiz");
           const b = el("button", "btn", "Passer le quiz");
           b.type = "button";
-          b.addEventListener("click", () => ouvrirQuiz(m, b, zq));
+          b.addEventListener("click", () => ouvrirQuiz(m, b, zq, {
+            quiz: "quiz", rep: "repondreQuiz", cle: "idModule", ok: "Module validé !", relire: "Relis le module puis réessaie.",
+            dire: dire, apres: () => charger()
+          }));
           li.append(b, zq);
         }
         ol.append(li);
