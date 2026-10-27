@@ -83,7 +83,7 @@ function medaille(info, obtenu) {
   const fam = FAMILLES_BADGES[info.famille] || FAMILLES_BADGES["Commun"];
   const n = ++compteurMedaille;
   const forme = formeBadge(fam.forme);
-  const glyphe = GLYPHES[GLYPHE_PAR_BADGE[info.id]] || GLYPHES.star;
+  const glyphe = GLYPHES[info.glyphe] || GLYPHES[GLYPHE_PAR_BADGE[info.id]] || GLYPHES.star;
   const bord1 = obtenu ? fam.clair : "#3B5285", bord2 = obtenu ? fam.c : "#1F3363";
   const f1 = obtenu ? "#1C4393" : "#0E2552", f2 = "#051534";
   const trait = obtenu ? fam.clair : "#6C82B0";

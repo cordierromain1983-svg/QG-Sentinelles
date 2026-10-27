@@ -258,3 +258,34 @@ body>*:not(#doc-impression){display:none!important}
 .reflexes{padding-left:1.2rem}
 .reflexes li{margin:.6rem 0;color:var(--os)}
 .note-sentinelle{margin:1rem 0 0;padding:.8rem 1rem;border-left:5px solid var(--or);border-radius:10px;background:rgba(242,183,5,.1);color:var(--os)}
+
+/* Fiches missions */
+.lien-fiches{margin:0 0 .9rem}
+.lien-fiches a{color:var(--or-clair);font-weight:700}
+.fiche{--c:#4CC9F0;position:relative;margin-bottom:1.3rem;padding:1.1rem;background:linear-gradient(180deg,rgba(14,40,92,.82),rgba(8,29,70,.82));border:1px solid var(--trait);border-top:4px solid var(--c);border-radius:14px}
+.fiche-tete{display:flex;gap:.9rem;align-items:center;margin-bottom:.8rem}
+.fiche-ico{flex:0 0 4.4rem;width:4.4rem;height:4.4rem}
+.fiche h3{margin:0;letter-spacing:.06em;color:var(--c)}
+.fiche h4{margin:.9rem 0 .4rem;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--or-clair)}
+.etiquette{display:inline-block;margin:.25rem 0 0;padding:.1rem .6rem;border-radius:999px;background:var(--or);color:#031536;font-size:.75rem;font-weight:800}
+.fiche-role{margin:.35rem 0 0}
+.qualites,.liste-fiche{list-style:none;margin:0;padding:0}
+.qualites li{margin-bottom:.5rem}
+.qualite{display:block;width:100%;text-align:left;padding:.7rem .8rem;border-radius:10px;border:1px solid var(--trait);background:rgba(3,21,54,.55);color:inherit;font:inherit;cursor:pointer}
+.qualite strong{display:block;color:#fff}
+.qualite .q-def{display:block;margin:.15rem 0 .3rem}
+.qualite .q-etat{display:block;font-size:.8rem;opacity:.75}
+.qualite[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c);background:rgba(76,201,240,.12)}
+.qualite[aria-pressed="true"] .q-etat{opacity:1;font-weight:700;color:var(--c)}
+.qualite:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.discret{font-size:.8rem;opacity:.75;margin:.4rem 0 0}
+.fiche-cas{margin:.9rem 0 0}
+.fiche-cas .cas{font-style:italic;margin:.5rem 0}
+.liste-fiche li{position:relative;padding-left:1.1rem;margin-bottom:.35rem}
+.liste-fiche li::before{content:"•";position:absolute;left:.2rem;color:var(--c)}
+.liste-fiche.pieges li::before{content:"⚠";left:0;font-size:.8rem}
+.fiche-limite{margin-top:.9rem;padding:.8rem 1rem;border-radius:10px;border:2px solid var(--or);background:rgba(242,183,5,.1)}
+.fiche-limite h4{margin:0 0 .3rem}
+.fiche-limite p{margin:0;font-weight:700}
+.liste-fiche.liens li::before{content:"→"}
+.liste-fiche a{color:var(--or-clair);font-weight:700;overflow-wrap:anywhere}

@@ -725,7 +725,96 @@ async function initReferent() {
   if (jeton()) agir(charger);
 }
 
-const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq", "urgence"];
+// Fiches missions : contenu lu dans la feuille FICHES_MISSIONS. L’auto-positionnement reste dans la page, rien n’est enregistré.
+const FICHE_GLYPHE = { "Voir": "eye", "Écouter": "ear", "Agir": "bolt", "Protéger": "shield" };
+function listeFiche(texte, cls) {
+  const ul = el("ul", cls || "liste-fiche");
+  String(texte || "").split("\n").map(t => t.trim()).filter(t => t).forEach(t => ul.append(el("li", null, t)));
+  return ul;
+}
+function lienFiche(libelle, url) {
+  const a = el("a", null, libelle);
+  a.href = url;
+  if (/^https?:/.test(url)) { a.target = "_blank"; a.rel = "noopener noreferrer"; a.append(el("span", "ext", " ↗")); }
+  return a;
+}
+async function initFiches() {
+  const zone = document.getElementById("fiches-liste");
+  let data, miennes = [];
+  try { data = await lireFeuille("FICHES_MISSIONS"); }
+  catch (e) { zone.replaceChildren(el("p", "vide", "Impossible de charger les fiches pour le moment. Réessaie plus tard.")); return; }
+  if (!data || !data.length) { zone.replaceChildren(el("p", "vide", "Les fiches arrivent bientôt.")); return; }
+  try { const p = await appeler("profil"); if (p && Array.isArray(p.missions)) miennes = p.missions; } catch (e) { /* facultatif */ }
+  const choisies = f => miennes.length > 0 && miennes.length < 4 && miennes.indexOf(f) >= 0;
+  const tri = data.slice().sort((a, b) => (choisies(b.Famille) - choisies(a.Famille)) || (Number(a.Ordre) - Number(b.Ordre)));
+  const frag = document.createDocumentFragment();
+  tri.forEach(f => {
+    const fam = FAMILLES_BADGES[f.Famille] || FAMILLES_BADGES["Commun"];
+    const art = el("article", "fiche");
+    art.style.setProperty("--c", fam.c);
+    const tete = el("div", "fiche-tete");
+    const ico = medaille({ id: "", nom: f.Famille, famille: f.Famille, glyphe: FICHE_GLYPHE[f.Famille] }, true);
+    ico.setAttribute("class", "medaille obtenue fiche-ico");
+    const titre = el("div");
+    const h = el("h3", null, "Mission " + f.Famille.toUpperCase());
+    titre.append(h);
+    if (choisies(f.Famille)) titre.append(el("span", "etiquette", "Ta mission"));
+    titre.append(el("p", "fiche-role", f.Role));
+    tete.append(ico, titre);
+    art.append(tete);
+
+    const q = el("section", "fiche-bloc");
+    q.append(el("h4", null, "Qualités attendues"));
+    const ul = el("ul", "qualites");
+    String(f.Qualites || "").split("\n").map(t => t.trim()).filter(t => t).forEach(t => {
+      const li = el("li");
+      const i = t.indexOf(":");
+      const nom = i > 0 ? t.slice(0, i).trim() : t, def = i > 0 ? t.slice(i + 1).trim() : "";
+      const b = el("button", "qualite");
+      b.type = "button";
+      b.setAttribute("aria-pressed", "false");
+      b.append(el("strong", null, nom), el("span", "q-def", def), el("span", "q-etat", "Je me reconnais ?"));
+      b.addEventListener("click", () => {
+        const on = b.getAttribute("aria-pressed") !== "true";
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+        b.querySelector(".q-etat").textContent = on ? "✓ Je me reconnais" : "Je me reconnais ?";
+      });
+      li.append(b);
+      ul.append(li);
+    });
+    q.append(ul, el("p", "discret", "Pour toi seul(e) : rien n’est enregistré ni vu par personne. Une qualité que tu ne coches pas, c’est une qualité à développer."));
+    art.append(q);
+
+    const cas = el("details", "fiche-cas");
+    cas.append(el("summary", null, "Mise en situation"));
+    cas.append(el("p", "cas", f.Cas));
+    const rel = el("div");
+    rel.append(el("h4", null, "Pour réfléchir"), listeFiche(f.Questions));
+    cas.append(rel);
+    art.append(cas);
+
+    const pi = el("section", "fiche-bloc");
+    pi.append(el("h4", null, "Pièges à repérer"), listeFiche(f.Pieges, "liste-fiche pieges"));
+    art.append(pi);
+
+    const lim = el("section", "fiche-limite");
+    lim.append(el("h4", null, "Ma limite"), el("p", null, f.Limite));
+    art.append(lim);
+
+    const plus = el("section", "fiche-bloc");
+    plus.append(el("h4", null, "Pour aller plus loin"));
+    const ul2 = el("ul", "liste-fiche liens");
+    const liens = [["J’apprends : les parcours " + f.Famille, "parcours.html"], ["J’agis : les Missions Flash", "missions.html"], ["Numéros d’urgence et d’écoute", "urgence.html"]];
+    String(f.Liens || "").split("\n").forEach(l => { const [lib, url] = l.split("|"); if (lib && url) liens.push([lib.trim(), url.trim()]); });
+    liens.forEach(([lib, url]) => { const li = el("li"); li.append(lienFiche(lib, url)); ul2.append(li); });
+    plus.append(ul2);
+    art.append(plus);
+    frag.append(art);
+  });
+  zone.replaceChildren(frag);
+}
+
+const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq", "urgence", "fiches"];
 if (PAGES_PROTEGEES.indexOf(document.body.dataset.page) >= 0 && !jeton()) {
   location.replace("index.html");
   throw new Error("Connexion requise");
@@ -735,5 +824,6 @@ if (document.body.dataset.page === "faq") initFaq();
 if (document.body.dataset.page === "portfolio") initPortfolio();
 if (document.body.dataset.page === "missions") initMissions();
 if (document.body.dataset.page === "parcours") initParcours();
+if (document.body.dataset.page === "fiches") initFiches();
 if (document.body.dataset.page === "index") initEntree();
 if (document.body.dataset.page === "referent") initReferent();
