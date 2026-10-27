@@ -44,6 +44,19 @@
 <div><b id="r-dem">—</b><span>Demandes à traiter</span></div>
 </div>
 <section class="bloc"><h2>Demandes de rendez-vous</h2><div id="r-demandes"></div></section>
+<section class="bloc" id="r-messagerie"><h2>Messages et documents entre référents</h2>
+<p class="chapo">Un espace de coordination visible des seuls référents. Pas d’information sur la situation d’un élève ici : pour un cas concret, passe par les voies habituelles (CPE, direction, vie scolaire). Pour partager un document, colle son lien (Drive, ENT…) : aucun fichier n’est stocké sur le site.</p>
+<form id="msg-form" class="outils">
+<label for="msg-dest">Pour</label>
+<select id="msg-dest"><option value="Tous">Tous les référents</option></select>
+<label for="msg-texte">Message</label>
+<textarea id="msg-texte" rows="3" maxlength="1000" required></textarea>
+<label for="msg-lien-lib">Document à partager (facultatif)</label>
+<input id="msg-lien-lib" maxlength="80" placeholder="Nom du document, par exemple : Trame de l’entretien">
+<input id="msg-lien-url" type="url" inputmode="url" placeholder="Lien https://…" aria-label="Lien du document">
+<button class="btn" type="submit">Envoyer</button>
+</form>
+<div id="msg-liste"><p class="vide">Chargement…</p></div></section>
 <section class="bloc"><h2>Suivi des Sentinelles</h2>
 <p class="chapo">Classées par code, jamais par résultat. Ne note rien de sensible dans les commentaires.</p>
 <div id="r-liste"></div></section>

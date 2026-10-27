@@ -733,7 +733,45 @@ async function initReferent() {
       return p;
     }) : [el("p", "vide", "Aucune demande en attente.")]));
     montrer("zone-ref");
+    chargerMessages().catch(() => ID("msg-liste").replaceChildren(el("p", "vide", "Messages indisponibles pour le moment.")));
   }
+
+  async function chargerMessages() {
+    const m = await appeler("refMessages");
+    if (m.erreur) { ID("msg-liste").replaceChildren(el("p", "vide", m.erreur)); return; }
+    const sel = ID("msg-dest");
+    const choix = sel.value;
+    sel.replaceChildren(...[["Tous", "Tous les référents"]].concat(m.referents.filter(c => c !== m.moi).map(c => [c, c])).map(([v, t]) => { const o = el("option", null, t); o.value = v; return o; }));
+    if ([...sel.options].some(o => o.value === choix)) sel.value = choix;
+    ID("msg-liste").replaceChildren(...(m.messages.length ? m.messages.map(x => {
+      const c = el("article", "message-ref" + (x.auteur === m.moi ? " mien" : ""));
+      c.append(el("p", "message-meta", x.auteur + " → " + (x.destinataire === "Tous" ? "tous" : x.destinataire) + " · " + x.date));
+      c.append(el("p", "message-texte", x.message));
+      if (x.lienUrl) { const p = el("p"); p.append(lienFiche("📎 " + (x.lienLibelle || "Document"), x.lienUrl)); c.append(p); }
+      if (x.supprimable) {
+        const b = el("button", "lien-discret", "Archiver"); b.type = "button";
+        b.addEventListener("click", () => agir(async () => {
+          const r = await appeler("refArchiver", { id: x.id });
+          if (r.erreur) { dire(r.erreur); return; }
+          await chargerMessages();
+        }));
+        c.append(b);
+      }
+      return c;
+    }) : [el("p", "vide", "Aucun message pour le moment.")]));
+  }
+
+  ID("msg-form").addEventListener("submit", ev => {
+    ev.preventDefault();
+    agir(async () => {
+      const r = await appeler("refPoster", { destinataire: ID("msg-dest").value, message: ID("msg-texte").value,
+        lienLibelle: ID("msg-lien-lib").value, lienUrl: ID("msg-lien-url").value });
+      if (r.erreur) { dire(r.erreur); window.scrollTo(0, 0); return; }
+      dire("");
+      ID("msg-texte").value = ""; ID("msg-lien-lib").value = ""; ID("msg-lien-url").value = "";
+      await chargerMessages();
+    });
+  });
 
   ID("zone-connexion").addEventListener("submit", ev => {
     ev.preventDefault();

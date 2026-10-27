@@ -36,7 +36,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 
 /* ----- Typographie et focus ----- */
 a{color:var(--or-clair)}
-a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--or);outline-offset:2px}
 main{max-width:46rem;margin:0 auto;padding:1.4rem 1rem}
 h2{font-size:1.2rem;font-weight:800;letter-spacing:.01em;margin:0 0 .7rem;color:var(--os)}
 .chapo{color:var(--brume);margin:0 0 1.25rem}
@@ -80,8 +80,8 @@ a.btn{text-decoration:none;text-align:center}
 /* ----- Formulaires ----- */
 .outils{display:grid;gap:.6rem;margin-bottom:1rem}
 .outils label{font-weight:600;font-size:.92rem;color:var(--os)}
-.outils input,.outils select{width:100%;padding:.8rem .9rem;border:1px solid var(--acier);border-radius:10px;font:inherit;color:var(--os);background:rgba(3,21,54,.85)}
-.outils input:focus,.outils select:focus{border-color:var(--or)}
+.outils input,.outils select,.outils textarea{width:100%;padding:.8rem .9rem;border:1px solid var(--acier);border-radius:10px;font:inherit;color:var(--os);background:rgba(3,21,54,.85)}
+.outils input:focus,.outils select:focus,.outils textarea:focus{border-color:var(--or)}
 .outils input::placeholder{color:var(--brume)}
 .rubrique{margin:1.4rem 0 .5rem;font-size:1.02rem;color:var(--or-clair)}
 
@@ -299,3 +299,10 @@ body.connecte .urgence-publique{display:none}
 .urgence-publique p{margin:.25rem 0}
 .urgence-publique .appel-pub{display:block;padding:.55rem .7rem;border-radius:10px;background:rgba(3,21,54,.6);color:#fff;text-decoration:none}
 .urgence-publique .appel-pub strong{font-size:1.4rem;color:var(--or-clair);margin-right:.4rem}
+
+.message-ref{margin:.6rem 0;padding:.7rem .85rem;border:1px solid var(--trait);border-radius:10px;background:rgba(3,21,54,.55)}
+.message-ref.mien{border-color:var(--or);background:rgba(242,183,5,.07)}
+.message-meta{margin:0 0 .3rem;font-size:.8rem;opacity:.8}
+.message-texte{margin:.2rem 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.lien-discret{background:none;border:0;color:var(--brume);text-decoration:underline;font:inherit;font-size:.8rem;padding:.2rem 0;cursor:pointer}
+#msg-form textarea{width:100%;font:inherit}
