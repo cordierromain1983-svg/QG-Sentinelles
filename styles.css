@@ -325,3 +325,12 @@ body.connecte .urgence-publique{display:none}
 .res-lien .btn{display:inline-block;margin-top:.3rem;text-decoration:none}
 
 .cps-etiquette { display: inline-block; margin-top: .35rem; padding: .15rem .6rem; border: 1px solid var(--trait); border-radius: 999px; color: var(--or-clair); font-size: .8rem; }
+
+.histoire{margin:.8rem 0 0;padding:.8rem;border:1px solid var(--bord,#c9d3e6);border-radius:.6rem;background:rgba(80,120,200,.07)}
+.histoire-titre{margin:0 0 .3rem;font-weight:700}
+.histoire-situation{margin:0 0 .6rem}
+.histoire-choix{display:flex;flex-direction:column;gap:.4rem}
+.btn-choix{text-align:left;padding:.55rem .7rem;border:1px solid var(--bord,#c9d3e6);border-radius:.5rem;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.btn-choix.choisi{outline:2px solid currentColor;font-weight:600}
+.histoire-retour{margin:.6rem 0 0}
+.lien-module{display:inline-block;margin-top:.6rem;font-weight:600}

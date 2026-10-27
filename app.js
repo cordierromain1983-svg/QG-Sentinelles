@@ -455,10 +455,48 @@ async function chargerCPS() {
     const [mods, comps] = await Promise.all([lireFeuille("MODULES"), lireFeuille("COMPETENCES")]);
     const parComp = {};
     comps.forEach(c => { if (c.CPS) parComp[c.ID_Competence] = c.CPS; });
-    const carte = {};
-    mods.forEach(m => { if (parComp[m.Competence_Principale]) carte[m.ID_Module] = parComp[m.Competence_Principale]; });
-    return carte;
-  } catch (e) { return {}; }
+    const carte = {}, histoires = {};
+    mods.forEach(m => {
+      if (parComp[m.Competence_Principale]) carte[m.ID_Module] = parComp[m.Competence_Principale];
+      if (m.Scenario || m.Liens) histoires[m.ID_Module] = { scenario: String(m.Scenario || ""), liens: String(m.Liens || "") };
+    });
+    return { cps: carte, histoires: histoires };
+  } catch (e) { return { cps: {}, histoires: {} }; }
+}
+
+// Mini-histoire à choix : 1re ligne = situation ; lignes suivantes « A|choix|retour ». Aucune note, aucun envoi.
+function blocHistoire(h) {
+  const zone = el("div", "histoire");
+  const lignes = (h.scenario || "").split("\n").map(l => l.trim()).filter(Boolean);
+  if (lignes.length >= 3) {
+    zone.append(el("p", "histoire-titre", "Mini-histoire : que fais-tu ?"), el("p", "histoire-situation", lignes[0]));
+    const retour = el("p", "histoire-retour");
+    retour.hidden = true;
+    const liste = el("div", "histoire-choix");
+    lignes.slice(1).forEach(l => {
+      const p = l.split("|");
+      if (p.length < 3) return;
+      const b = el("button", "btn-choix", p[0].trim() + ". " + p[1].trim());
+      b.type = "button";
+      b.addEventListener("click", () => {
+        liste.querySelectorAll(".btn-choix").forEach(x => x.classList.remove("choisi"));
+        b.classList.add("choisi");
+        retour.textContent = p.slice(2).join("|").trim();
+        retour.hidden = false;
+      });
+      liste.append(b);
+    });
+    zone.append(liste, retour);
+  }
+  const liens = (h.liens || "").split("\n").map(l => l.trim()).filter(Boolean);
+  liens.forEach(l => {
+    const p = l.split("|");
+    if (p.length < 2 || !/^https:\/\//.test(p[1].trim())) return;
+    const a = el("a", "lien-module", "▶ " + p[0].trim());
+    a.href = p[1].trim(); a.target = "_blank"; a.rel = "noopener noreferrer";
+    zone.append(a);
+  });
+  return zone.childNodes.length ? zone : null;
 }
 
 async function initParcours() {
@@ -470,7 +508,8 @@ async function initParcours() {
     return;
   }
   const ouverts = new Set();
-  const cps = await chargerCPS();
+  const donnees = await chargerCPS();
+  const cps = donnees.cps, histoires = donnees.histoires;
   async function charger() {
     let r;
     try { r = await appeler("parcours"); }
@@ -504,10 +543,12 @@ async function initParcours() {
         const t = el("div");
         t.append(el("strong", null, m.titre), el("span", null, (m.fait ? "✔ Terminé" : m.disponible ? "À faire" : "À venir") + (m.duree ? " · " + m.duree : "")));
         if (cps[m.id]) t.append(el("span", "cps-etiquette", "Tu travailles : " + cps[m.id]));
-        if (m.contenu && m.disponible) t.append(el("p", "contenu", m.contenu));
+        const hist = (m.disponible || m.fait) && histoires[m.id] ? blocHistoire(histoires[m.id]) : null;
+        if (m.contenu && m.disponible) { t.append(el("p", "contenu", m.contenu)); if (hist) t.append(hist); }
         else if (m.contenu && m.fait) {
           const dd = el("details", "relire");
           dd.append(el("summary", null, "Relire le module"), el("p", "contenu", m.contenu));
+          if (hist) dd.append(hist);
           t.append(dd);
         }
         li.append(t);
