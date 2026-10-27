@@ -17,6 +17,7 @@ const ICONES = {
   mission: ["M13 2L4 14h7l-1 8 9-12h-7z"],
   marches: ["M3 20h18", "M5 20v-5h4v5", "M10 20V9h4v11", "M15 20V4h4v16"],
   bouee: ["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z", "M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z", "M5.6 5.6l3.9 3.9", "M14.5 14.5l3.9 3.9", "M18.4 5.6l-3.9 3.9", "M9.5 14.5l-3.9 3.9"],
+  alerte: ["M12 3L2 20h20z", "M12 10v4", "M12 17.2v.1"],
   medaille: ["M12 3a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z", "M8.5 13.5L7 22l5-3 5 3-1.5-8.5"]
 };
 function icone(nom) {
@@ -80,6 +81,13 @@ function construireCadre() {
     document.body.prepend(haut, nav);
   } else {
     document.body.prepend(haut);
+  }
+  if (jeton() && page !== "referent" && page !== "urgence") {
+    const sos = el("a", "sos");
+    sos.href = "urgence.html";
+    sos.setAttribute("aria-label", "Numéros d’urgence et d’écoute");
+    sos.append(icone("alerte"), el("span", null, "Urgence"));
+    document.body.append(sos);
   }
   const pied = el("footer", "pied");
   const lien = el("a", null, "Mentions légales et confidentialité");
@@ -717,7 +725,7 @@ async function initReferent() {
   if (jeton()) agir(charger);
 }
 
-const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq"];
+const PAGES_PROTEGEES = ["missions", "parcours", "portfolio", "faq", "urgence"];
 if (PAGES_PROTEGEES.indexOf(document.body.dataset.page) >= 0 && !jeton()) {
   location.replace("index.html");
   throw new Error("Connexion requise");

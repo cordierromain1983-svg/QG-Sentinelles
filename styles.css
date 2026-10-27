@@ -229,3 +229,32 @@ body>*:not(#doc-impression){display:none!important}
 .missions .consigne{margin:.4rem 0 .2rem;color:var(--os);line-height:1.4}
 .missions .duree{color:var(--or-clair);font-size:.85rem;font-weight:700}
 .missions .quiz{margin-top:.3rem}
+
+/* Urgence et écoute */
+.sos{position:fixed;right:.8rem;bottom:calc(4.6rem + env(safe-area-inset-bottom));z-index:6;display:flex;align-items:center;gap:.4rem;padding:.55rem .9rem;border-radius:999px;background:linear-gradient(180deg,#FF7A63,#D9382A);color:#fff;font-weight:800;font-size:.85rem;letter-spacing:.03em;text-decoration:none;box-shadow:0 4px 18px rgba(217,56,42,.55)}
+.sos svg{width:1.15rem;height:1.15rem;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sos:hover{filter:brightness(1.08)}
+.sos:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media(min-width:48rem){.sos{bottom:1.2rem;right:1.2rem}}
+.bandeau-urgence{display:flex;flex-direction:column;gap:.15rem;margin:.2rem 0 1rem;padding:.8rem 1rem;border:1px solid #D9382A;border-left:6px solid #FF7A63;border-radius:12px;background:rgba(217,56,42,.14);color:var(--os);text-decoration:none}
+.bandeau-urgence span{color:var(--brume);font-size:.9rem}
+.bandeau-urgence:hover{background:rgba(217,56,42,.22)}
+.alerte a{color:var(--or-clair);font-weight:700}
+.urgence .danger-immediat{margin:.2rem 0 1rem;padding:.8rem 1rem;border:1px solid #D9382A;border-radius:12px;background:rgba(217,56,42,.16)}
+.urgence a{color:var(--or-clair)}
+.carte-urgence{position:relative;margin:0 0 1rem;padding:1rem 1rem 1.1rem;border:1px solid var(--acier);border-radius:16px;background:linear-gradient(180deg,rgba(18,48,110,.8),rgba(5,21,52,.85))}
+.carte-urgence .num{margin:0;font-size:3.2rem;font-weight:900;line-height:1;letter-spacing:.04em;color:var(--or-clair);text-shadow:0 0 18px rgba(242,183,5,.4)}
+.carte-urgence h3{margin:.2rem 0 .8rem}
+.carte-urgence h4{margin:1rem 0 .3rem;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;color:var(--brume)}
+.carte-urgence ul{margin:.4rem 0;padding-left:1.1rem}
+.carte-urgence li{margin:.35rem 0}
+.btn.appel{text-align:center;text-decoration:none;font-size:1.05rem;color:#03112B}
+.lien-gros{display:inline-block;padding:.15rem .55rem;border:1px solid var(--or);border-radius:8px;color:var(--or-clair);font-weight:700;text-decoration:none;word-break:break-word}
+.lien-gros:hover{background:rgba(242,183,5,.15)}
+.liens-officiels{list-style:none;margin:0;padding:0}
+.liens-officiels li{display:grid;gap:.3rem;padding:.8rem 0;border-top:1px solid var(--trait)}
+.liens-officiels li:first-child{border-top:0}
+.liens-officiels span{color:var(--os);font-size:.95rem}
+.reflexes{padding-left:1.2rem}
+.reflexes li{margin:.6rem 0;color:var(--os)}
+.note-sentinelle{margin:1rem 0 0;padding:.8rem 1rem;border-left:5px solid var(--or);border-radius:10px;background:rgba(242,183,5,.1);color:var(--os)}
