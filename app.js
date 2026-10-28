@@ -50,11 +50,22 @@ function el(tag, cls, txt) {
 }
 
 // Lit une feuille publique (FAQ, RESSOURCES…). Renvoie null tant que l’API n’est pas configurée.
+// Feuilles de contenu (non personnelles) : gardées 5 minutes dans l'onglet pour éviter un aller-retour au serveur.
+const DUREE_MEMO_MS = 5 * 60 * 1000;
 async function lireFeuille(nom) {
   if (!CONFIG.API_URL) return null;
+  const cle = "qg_f_" + nom;
+  try {
+    const brut = sessionStorage.getItem(cle);
+    if (brut) {
+      const m = JSON.parse(brut);
+      if (Date.now() - m.t < DUREE_MEMO_MS && Array.isArray(m.d)) return m.d;
+    }
+  } catch (e) { /* stockage indisponible : on interroge le serveur */ }
   const d = await appeler("feuille", { nom: nom });
   if (d && d.erreur) throw new Error(d.erreur);
   if (!Array.isArray(d)) throw new Error("Données invalides");
+  try { sessionStorage.setItem(cle, JSON.stringify({ t: Date.now(), d: d })); } catch (e) { /* tant pis */ }
   return d;
 }
 
@@ -508,11 +519,14 @@ async function initParcours() {
     return;
   }
   const ouverts = new Set();
-  const donnees = await chargerCPS();
-  const cps = donnees.cps, histoires = donnees.histoires;
+  const donneesP = chargerCPS(); // lancé en même temps que « parcours » : on n'additionne plus les attentes
+  let cps = {}, histoires = {};
   async function charger() {
     let r;
-    try { r = await appeler("parcours"); }
+    try {
+      const res = await Promise.all([appeler("parcours"), donneesP]);
+      r = res[0]; cps = res[1].cps; histoires = res[1].histoires;
+    }
     catch (e) { zone.replaceChildren(el("p", "vide", "Impossible de charger les parcours pour le moment. Réessaie plus tard.")); return; }
     if (r.erreur) {
       if (/expir/i.test(r.erreur)) sessionStorage.removeItem("qg_token");
