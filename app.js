@@ -1056,3 +1056,44 @@ if (document.body.dataset.page === "fiches") initFiches();
 if (document.body.dataset.page === "ressources") initRessources();
 if (document.body.dataset.page === "index") initEntree();
 if (document.body.dataset.page === "referent") initReferent();
+
+
+// ---------- Application installable (service worker + invitation à installer) ----------
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => { /* facultatif */ }); });
+}
+
+let invitationInstall = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); invitationInstall = e; proposerInstallation(); });
+
+function proposerInstallation() {
+  if (document.body.dataset.page !== "index") return;
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;
+  try { if (sessionStorage.getItem("qg_install_non")) return; } catch (e) { /* on propose quand même */ }
+  if (document.getElementById("zone-install")) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+  if (!invitationInstall && !ios) return;
+  const zone = el("aside", "install");
+  zone.id = "zone-install";
+  zone.setAttribute("aria-label", "Installer l’application");
+  zone.append(el("p", "install-texte", invitationInstall
+    ? "Installe le QG sur ton téléphone : il s’ouvre comme une appli, en plein écran."
+    : "Pour l’avoir comme une appli : touche le bouton Partager, puis « Sur l’écran d’accueil »."));
+  if (invitationInstall) {
+    const b = el("button", "btn", "Installer l’appli");
+    b.type = "button";
+    b.addEventListener("click", async () => {
+      invitationInstall.prompt();
+      try { await invitationInstall.userChoice; } catch (e) { /* ignoré */ }
+      invitationInstall = null; zone.remove();
+    });
+    zone.append(b);
+  }
+  const non = el("button", "install-non", "Pas maintenant");
+  non.type = "button";
+  non.addEventListener("click", () => { try { sessionStorage.setItem("qg_install_non", "1"); } catch (e) { /* ignoré */ } zone.remove(); });
+  zone.append(non);
+  const logo = document.querySelector(".logo-accueil");
+  (logo || document.querySelector("main")).after(zone);
+}
+if (document.readyState !== "loading") proposerInstallation(); else document.addEventListener("DOMContentLoaded", proposerInstallation);

@@ -334,3 +334,9 @@ body.connecte .urgence-publique{display:none}
 .btn-choix.choisi{outline:2px solid currentColor;font-weight:600}
 .histoire-retour{margin:.6rem 0 0}
 .lien-module{display:inline-block;margin-top:.6rem;font-weight:600}
+
+.install{margin:.8rem 0;padding:.8rem 1rem;border:1px solid var(--trait);border-radius:.8rem;background:rgba(242,183,5,.08);display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.install-texte{margin:0;flex:1 1 14rem}
+.install-non{background:transparent;border:0;color:var(--brume);font:inherit;text-decoration:underline;cursor:pointer;padding:.4rem}
+html{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+@media (display-mode:standalone){body{-webkit-user-select:none;user-select:none}input,textarea,.contenu,.chapo,p{-webkit-user-select:text;user-select:text}}
