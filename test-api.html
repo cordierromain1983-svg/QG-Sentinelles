@@ -1,0 +1,24 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Test du serveur</title>
+<style>body{font:16px system-ui;margin:16px;max-width:720px}input,button{font:inherit;padding:8px;margin:4px 0}pre{background:#f3f3f3;padding:8px;white-space:pre-wrap;word-break:break-word}</style></head><body>
+<h1>Test du nouveau serveur (temporaire)</h1>
+<p>Compte de démonstration : <input id="c" value="DEMO-01"> mot de passe : <input id="m" type="password"></p>
+<button id="go">Lancer les tests</button><pre id="o">En attente…</pre>
+<script>
+const URL_API="https://sqbfowvsyhapkzaqkhib.supabase.co/functions/v1/smart-worker";
+const o=document.getElementById("o");const log=t=>{o.textContent+="\n"+t};
+async function ap(a,x){const r=await fetch(URL_API,{method:"POST",body:JSON.stringify(Object.assign({action:a,token:window.T||""},x||{}))});return r.json();}
+document.getElementById("go").onclick=async()=>{o.textContent="";
+try{
+ let d=await ap("ping");log("ping : "+JSON.stringify(d));
+ d=await ap("connexion",{code:document.getElementById("c").value,mdp:document.getElementById("m").value});log("connexion : "+JSON.stringify(d).replace(/"token":"[^"]+"/,'"token":"…"'));
+ if(!d.token)return;window.T=d.token;
+ d=await ap("profil");log("profil : "+JSON.stringify(d));
+ d=await ap("parcours");log("parcours : "+(d.erreur||d.parcours.length+" parcours, premier module : "+d.parcours[0].modules[0].titre));
+ const p=d.parcours&&d.parcours[0].modules[0];
+ if(p){d=await ap("quiz",{idModule:p.id});log("quiz : "+(d.erreur||d.questions.length+" questions"));}
+ d=await ap("missionsSemaine");log("missions : "+(d.erreur||d.missions.map(m=>m.code).join(", ")));
+ d=await ap("portfolio");log("portfolio : "+(d.erreur||"ok, niveau "+d.niveau));
+ d=await ap("deconnexion");log("déconnexion : "+JSON.stringify(d));
+}catch(e){log("ERREUR : "+e.message)}};
+</script></body></html>
