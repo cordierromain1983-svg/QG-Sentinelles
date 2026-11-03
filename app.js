@@ -49,11 +49,10 @@ function el(tag, cls, txt) {
   return e;
 }
 
-// Lit une feuille publique (FAQ, RESSOURCES…). Renvoie null tant que l’API n’est pas configurée.
+// Lit un fichier de contenu public du site (FAQ, RESSOURCES…).
 // Feuilles de contenu (non personnelles) : gardées 5 minutes dans l'onglet pour éviter un aller-retour au serveur.
 const DUREE_MEMO_MS = 5 * 60 * 1000;
 async function lireFeuille(nom) {
-  if (!CONFIG.API_URL) return null;
   const cle = "qg_f_" + nom;
   try {
     const brut = sessionStorage.getItem(cle);
@@ -61,9 +60,11 @@ async function lireFeuille(nom) {
       const m = JSON.parse(brut);
       if (Date.now() - m.t < DUREE_MEMO_MS && Array.isArray(m.d)) return m.d;
     }
-  } catch (e) { /* stockage indisponible : on interroge le serveur */ }
-  const d = await appeler("feuille", { nom: nom });
-  if (d && d.erreur) throw new Error(d.erreur);
+  } catch (e) { /* stockage indisponible : on relit le fichier */ }
+  // Les contenus (non personnels) sont de simples fichiers du site : data/NOM.json
+  const r = await fetch("data/" + nom + ".json");
+  if (!r.ok) throw new Error("Contenu indisponible");
+  const d = await r.json();
   if (!Array.isArray(d)) throw new Error("Données invalides");
   try { sessionStorage.setItem(cle, JSON.stringify({ t: Date.now(), d: d })); } catch (e) { /* tant pis */ }
   return d;

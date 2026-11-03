@@ -1,0 +1,18 @@
+# Évite la mise en pause du projet Supabase (plan gratuit) : un appel par jour.
+# Secret à créer dans GitHub : Settings > Secrets and variables > Actions > SUPABASE_API_URL
+# (adresse complète de la fonction, ex. https://xxxx.supabase.co/functions/v1/api)
+name: ping-supabase
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Réveiller la base
+        env:
+          URL: ${{ secrets.SUPABASE_API_URL }}
+        run: |
+          if [ -z "$URL" ]; then echo "SUPABASE_API_URL absent : rien à faire"; exit 0; fi
+          curl -fsS -X POST -H "Content-Type: text/plain" -d '{"action":"ping"}' "$URL"
