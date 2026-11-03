@@ -1,7 +1,7 @@
 "use strict";
 
-// Étape 2 : coller ici l’adresse de l’application web Apps Script.
-const CONFIG = { API_URL: "https://script.google.com/macros/s/AKfycbyYt4ipAol5ihHZKybK7y8K6tc7pgijrnUIIxzsv6bQCgl8Vmri29zIgyDdE6vHrieU/exec" };
+// Adresse du serveur (fonction Supabase, région UE).
+const CONFIG = { API_URL: "https://sqbfowvsyhapkzaqkhib.supabase.co/functions/v1/smart-worker" };
 
 const PAGES = [
   { id: "index", href: "index.html", ico: "accueil", nom: "Accueil" },
@@ -149,7 +149,7 @@ async function initFaq() {
 
 function jeton() { return sessionStorage.getItem("qg_token") || ""; }
 
-// Retour visuel pendant l’attente du serveur (Apps Script peut mettre quelques secondes à répondre).
+// Retour visuel pendant l’attente du serveur (le serveur peut mettre un instant à répondre).
 let appelsEnCours = 0, minuteurAttente = null, boutonsOccupes = [];
 function messageAttente(action) {
   if (action === "connexion") return "Connexion en cours… cela peut prendre quelques secondes.";

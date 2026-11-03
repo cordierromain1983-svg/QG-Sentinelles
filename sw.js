@@ -1,7 +1,7 @@
 // Le QG des Sentinelles : service worker.
 // Garde uniquement les fichiers du site (pages, styles, scripts, images) pour un lancement rapide
 // et un accès hors connexion aux pages. Aucune donnée personnelle ni réponse du serveur n'est conservée.
-const VERSION = "qg-v1";
+const VERSION = "qg-v2";
 const COQUILLE = [
   "./", "index.html", "missions.html", "parcours.html", "faq.html", "portfolio.html", "urgence.html",
   "ressources.html", "fiches.html", "mentions-legales.html", "styles.css", "app.js", "badges.js",
