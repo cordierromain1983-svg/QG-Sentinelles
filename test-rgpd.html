@@ -1,0 +1,28 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Tests RGPD (temporaire)</title>
+<style>body{font:16px system-ui;margin:16px;max-width:760px}input,button{font:inherit;padding:8px;margin:4px 0}pre{background:#f3f3f3;padding:8px;white-space:pre-wrap;word-break:break-word}</style></head><body>
+<h1>Tests RGPD avec le compte de démonstration</h1>
+<p>Mot de passe DEMO-01 : <input id="m" type="password"></p>
+<button id="go">Lancer</button><pre id="o">En attente…</pre>
+<script>
+const API="https://sqbfowvsyhapkzaqkhib.supabase.co/functions/v1/smart-worker";let T="";
+const o=document.getElementById("o");const log=(n,ok,t)=>{o.textContent+="\n"+(ok?"OK   ":"ÉCHEC")+" "+n+(t?" -> "+t:"")};
+async function ap(a,x){const r=await fetch(API,{method:"POST",body:JSON.stringify(Object.assign({action:a,token:T},x||{}))});return r.json();}
+document.getElementById("go").onclick=async()=>{o.textContent="";try{
+ let d=await ap("connexion",{code:"DEMO-01",mdp:document.getElementById("m").value});
+ if(!d.token){log("connexion DEMO-01",false,d.erreur);return}T=d.token;log("connexion DEMO-01",true);
+ d=await ap("refVue");log("T-A un compte Sentinelle ne voit pas l’espace référent",!!d.erreur&&!d.sentinelles,d.erreur);
+ d=await ap("adminReinit",{cible:"SNT-001"});log("T-B un compte Sentinelle ne peut pas réinitialiser un mot de passe",!!d.erreur&&!d.provisoire,d.erreur);
+ d=await ap("refMessages");log("T-C messagerie référents fermée aux Sentinelles",!!d.erreur&&!d.messages,d.erreur);
+ d=await ap("refBadge",{cible:"SNT-001",idBadge:"BDG-011"});log("T-D un compte Sentinelle ne peut pas attribuer de badge",!!d.erreur&&!d.ok,d.erreur);
+ d=await ap("changerMdp",{nouveau:"Abcdefgh1"});log("T-E mot de passe DEMO non modifiable",!!d.erreur&&!d.ok,d.erreur);
+ const p=await ap("parcours");const id=p.parcours[0].modules[0].id;
+ d=await ap("quiz",{idModule:id});const txt=JSON.stringify(d);
+ log("T-F le quiz envoyé ne contient ni bonne réponse ni explication",!/bonne|explication|Bonne_Reponse/i.test(txt),d.questions.length+" questions");
+ const rep={};d.questions.forEach(q=>rep[q.id]="A");
+ d=await ap("repondreQuiz",{idModule:id,reponses:rep});log("T-G réponse au quiz traitée sans erreur",!d.erreur,"bonnes "+d.bonnes+"/"+d.total);
+ d=await ap("profil");log("T-H le compte démo n’enregistre aucune progression (score 0, aucun badge)",d.score===0&&d.badges.length===0,"score "+d.score);
+ d=await ap("portfolio");log("T-I portfolio limité au compte connecté",d.code==="DEMO-01",d.code);
+ d=await ap("deconnexion");d=await ap("profil");log("T-J jeton invalidé après déconnexion",!!d.erreur,d.erreur);
+}catch(e){log("erreur technique",false,e.message)}};
+</script></body></html>
